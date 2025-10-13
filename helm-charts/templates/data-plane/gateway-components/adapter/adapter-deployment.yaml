@@ -173,6 +173,9 @@ spec:
         seccompProfile:
           type: "RuntimeDefault"
       volumes: 
+        - name: log-conf-volume
+          configMap: 
+            name: {{ template "apk-helm.resource.prefix" . }}-log-conf
       {{- if .Values.wso2.apk.secretProviderClass.enabled }}
         - name: secret-provider-class
           csi:
@@ -194,9 +197,6 @@ spec:
           secret: 
             secretName: {{ template "apk-helm.resource.prefix" . }}-adapter-truststore-consul-secret
       {{- end }}
-        - name: log-conf-volume
-          configMap: 
-            name: {{ template "apk-helm.resource.prefix" . }}-log-conf
         # - name: adapter-webhook-server-cert
         #   secret:
         #     secretName: {{ template "apk-helm.resource.prefix" . }}-webhook-server-cert
