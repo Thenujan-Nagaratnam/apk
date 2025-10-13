@@ -21,6 +21,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
@@ -38,6 +40,22 @@ import (
 const (
 	apiTypedURL = "type.googleapis.com/wso2.discovery.api.Api"
 )
+
+// getXDSMaxMsgSize retrieves the maximum message size for XDS communication from environment variable
+// XDS_MAX_MSG_SIZE, with a default value of 41943040 bytes (40MB) if not set or invalid.
+func getXDSMaxMsgSize() int {
+	defaultSize := 41943040 // 40MB default
+	envValue := os.Getenv("XDS_MAX_MSG_SIZE")
+	if envValue == "" {
+		return defaultSize
+	}
+
+	if size, err := strconv.Atoi(envValue); err == nil && size > 0 {
+		return size
+	}
+
+	return defaultSize
+}
 
 // APIXDSClient manages the connection to the API Discovery Service via gRPC.
 // It supports connection retries, TLS configuration, and handling of API stream data.
@@ -80,7 +98,14 @@ func NewAPIXDSClient(host string, port string, maxRetries int, retryInterval tim
 // and initiates a streaming API configuration. If the connection fails, it will retry
 // based on the configured retry policy. Received configuration updates are logged.
 func (c *APIXDSClient) InitiateAPIXDSConnection() {
-	grpcConn := util.CreateGRPCConnectionWithRetryAndPanic(nil, c.Host, c.Port, c.tlsConfig, c.maxRetries, c.retryInterval)
+	// Get gRPC max message size from environment variable or use default (40MB)
+	maxMsgSize := getXDSMaxMsgSize()
+	grpcOpts := []grpc.DialOption{
+		grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(maxMsgSize)),
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxMsgSize)),
+	}
+
+	grpcConn := util.CreateGRPCConnectionWithRetryAndPanic(context.TODO(), c.Host, c.Port, c.tlsConfig, c.maxRetries, c.retryInterval, grpcOpts...)
 	c.grpcConn = grpcConn
 	client := api_ads.NewApiDiscoveryServiceClient(grpcConn)
 	c.client = client
