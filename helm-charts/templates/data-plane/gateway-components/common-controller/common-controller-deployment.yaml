@@ -83,6 +83,15 @@ spec:
             - name: secret-provider-class
               mountPath: /home/wso2/security/truststore/adapter-ca.crt
               subPath: adapter-ca.crt
+            - name: secret-provider-class
+              mountPath: /tmp/k8s-webhook-server/serving-certs/tls.key
+              subPath: commoncontroller.key
+            - name: secret-provider-class
+              mountPath: /tmp/k8s-webhook-server/serving-certs/tls.crt
+              subPath: commoncontroller.crt
+            - name: secret-provider-class
+              mountPath: /tmp/k8s-webhook-server/serving-certs/ca.crt
+              subPath: commoncontroller-ca.crt
             {{- if and .Values.wso2.apk.dp.enabled .Values.wso2.apk.dp.ratelimiter.enabled }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/truststore/ratelimiter-ca.crt
@@ -110,6 +119,9 @@ spec:
             {{- else }}
               subPath: ca.crt
             {{- end }}
+            - name: adapter-webhook-server-cert
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
           {{- if and .Values.wso2.apk.dp.enabled .Values.wso2.apk.dp.ratelimiter.enabled }}
             # - name: enforcer-truststore-secret-volume
             #   mountPath: /home/wso2/security/truststore/enforcer.crt
@@ -128,9 +140,6 @@ spec:
               subPath: ca.crt
             {{- end }}
           {{- end }}
-            - mountPath: /tmp/k8s-webhook-server/serving-certs
-              name: adapter-webhook-server-cert
-              readOnly: true
       {{- end }}
             - name: log-conf-volume
               mountPath: /home/wso2/conf/
