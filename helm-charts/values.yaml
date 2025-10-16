@@ -41,74 +41,166 @@ wso2:
         azureTenantID: ""
       secrets:
         ratelimiterRedisCredentials:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         adapterKey:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         adapterCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         adapterCaCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         enforcerKey:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         enforcerCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         enforcerCaCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         routerKey:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         routerCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         routerCaCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         ratelimiterKey:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         ratelimiterCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         ratelimiterCaCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         commonControllerKey:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         commonControllerCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         commonControllerCaCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         systemApiListenerKey:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         systemApiListenerCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         enforcerJwksKey:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         enforcerJwksCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         enforcerJwksCaCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         tracingCaCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
         tracingCert:
-          key: ""
-          path: ""
+          azure:
+            secretName: ""
+            version: ""
+          vault:
+            secretKey: ""
+            secretPath: ""
     helmHooks:
       webhooksCleanupEnabled: true
       webhooksCleanup:
