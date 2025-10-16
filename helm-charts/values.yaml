@@ -33,9 +33,12 @@ wso2:
   apk:
     secretProviderClass:
       enabled: false
+      provider: "vault"
       vault:
         url: ""
         roleName: ""
+        keyVaultName: ""
+        azureTenantID: ""
       secrets:
         ratelimiterRedisCredentials:
           key: ""
@@ -83,6 +86,12 @@ wso2:
           key: ""
           path: ""
         commonControllerCaCert:
+          key: ""
+          path: ""
+        systemApiListenerKey:
+          key: ""
+          path: ""
+        systemApiListenerCert:
           key: ""
           path: ""
         enforcerJwksKey:
