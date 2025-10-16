@@ -32,7 +32,7 @@ wso2:
 
   apk:
     secretProviderClass:
-      enabled: true
+      enabled: false
       provider: "vault"
       vault:
         url: ""
