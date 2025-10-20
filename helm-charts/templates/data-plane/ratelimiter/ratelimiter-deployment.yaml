@@ -176,6 +176,23 @@ spec:
             {{ end }}
           volumeMounts:
           {{- if .Values.wso2.apk.secretProviderClass.enabled }}
+            {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/ratelimiter.key
+              subPath: tls.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/ratelimiter.crt
+              subPath: tls.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/ratelimiter-ca.crt
+              subPath: ratelimiter-ca.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/adapter.pem
+              subPath: adapter-ca.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/router.pem
+              subPath: router-ca.crt
+            {{- else }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/ratelimiter.key
               subPath: ratelimiter.key
@@ -191,6 +208,7 @@ spec:
             - name: secret-provider-class
               mountPath: /home/wso2/security/truststore/router.pem
               subPath: router-ca.crt
+            {{- end }}
           {{- else }}
             - name: ratelimiter-keystore-secret-volume
               mountPath: /home/wso2/security/keystore/ratelimiter.key
@@ -283,6 +301,12 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: {{ template "apk-helm.resource.prefix" . }}-secrets
+        {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+        - name: apk-server-tls-secret-volume
+          secret:
+            secretName: {{ template "apk-helm.resource.prefix" . }}-apk-server-tls
+            defaultMode: 420
+        {{- end }}
       {{- else }}
         - name: ratelimiter-keystore-secret-volume
           secret:

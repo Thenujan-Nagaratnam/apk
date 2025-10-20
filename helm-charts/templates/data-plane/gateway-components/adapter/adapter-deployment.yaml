@@ -72,6 +72,23 @@ spec:
             value: {{ template "apk-helm.resource.prefix" . }}-adapter-service.{{ .Release.Namespace }}.svc
           volumeMounts:
           {{- if .Values.wso2.apk.secretProviderClass.enabled }}
+            {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/adapter.key
+              subPath: tls.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/adapter.crt
+              subPath: tls.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/adapter-ca.crt
+              subPath: adapter-ca.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/router.crt
+              subPath: tls.crt
+            - name: enforcer-jwks-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/enforcer.crt
+              subPath: tls.crt
+            {{- else }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/adapter.key
               subPath: adapter.key
@@ -87,6 +104,7 @@ spec:
             - name: secret-provider-class
               mountPath: /home/wso2/security/truststore/enforcer.crt
               subPath: enforcer.crt # TODO: (renuka) should be enforcer-ca.crt check this
+            {{- end }}
           {{- else }}
             - name: adapter-keystore-secret-volume
               mountPath: /home/wso2/security/keystore/adapter.key
@@ -183,6 +201,16 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: {{ template "apk-helm.resource.prefix" . }}-secrets
+        {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+        - name: apk-server-tls-secret-volume
+          secret:
+            secretName: {{ template "apk-helm.resource.prefix" . }}-apk-server-tls
+            defaultMode: 420
+        - name: enforcer-jwks-tls-secret-volume
+          secret:
+            secretName: {{ template "apk-helm.resource.prefix" . }}-enforcer-jwks-tls
+            defaultMode: 420
+        {{- end }}
       {{- else }}
         - name: adapter-keystore-secret-volume
           secret:
