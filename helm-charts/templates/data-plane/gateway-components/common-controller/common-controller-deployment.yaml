@@ -74,6 +74,31 @@ spec:
             value: {{ template "apk-helm.resource.prefix" . }}-common-controller-service.{{ .Release.Namespace }}.svc
           volumeMounts:
       {{- if .Values.wso2.apk.secretProviderClass.enabled }}
+            {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/commoncontroller.key
+              subPath: tls.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/commoncontroller.crt
+              subPath: tls.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/adapter-ca.crt
+              subPath: adapter-ca.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /tmp/k8s-webhook-server/serving-certs/tls.key
+              subPath: tls.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /tmp/k8s-webhook-server/serving-certs/tls.crt
+              subPath: tls.crt
+            - name: secret-provider-class
+              mountPath: /tmp/k8s-webhook-server/serving-certs/ca.crt
+              subPath: commoncontroller-ca.crt
+            {{- if and .Values.wso2.apk.dp.enabled .Values.wso2.apk.dp.ratelimiter.enabled }}
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/ratelimiter-ca.crt
+              subPath: ratelimiter-ca.crt
+            {{- end }}
+            {{- else }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/commoncontroller.key
               subPath: commoncontroller.key
@@ -96,6 +121,7 @@ spec:
             - name: secret-provider-class
               mountPath: /home/wso2/security/truststore/ratelimiter-ca.crt
               subPath: ratelimiter-ca.crt
+            {{- end }}
             {{- end }}
       {{- else }}
             - name: common-controller-keystore-secret-volume
@@ -181,6 +207,12 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: {{ template "apk-helm.resource.prefix" . }}-secrets
+        {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+        - name: apk-server-tls-secret-volume
+          secret:
+            secretName: {{ template "apk-helm.resource.prefix" . }}-apk-server-tls
+            defaultMode: 420
+        {{- end }}
       {{- else }}
         - name: common-controller-keystore-secret-volume
           secret:

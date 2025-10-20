@@ -37,9 +37,16 @@ wso2:
       vault:
         url: ""
         roleName: ""
+      azure:
         keyVaultName: ""
-        azureTenantID: ""
+        tenantId: ""
       secrets:
+        apkServerKey:
+          secretName: ""
+          version: ""
+        apkServerCert:
+          secretName: ""
+          version: ""
         ratelimiterRedisCredentials:
           azure:
             secretName: ""
@@ -48,16 +55,10 @@ wso2:
             key: ""
             path: ""
         adapterKey:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
         adapterCert:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
@@ -69,16 +70,10 @@ wso2:
             key: ""
             path: ""
         enforcerKey:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
         enforcerCert:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
@@ -90,16 +85,10 @@ wso2:
             key: ""
             path: ""
         routerKey:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
         routerCert:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
@@ -111,16 +100,10 @@ wso2:
             key: ""
             path: ""
         ratelimiterKey:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
         ratelimiterCert:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
@@ -132,16 +115,10 @@ wso2:
             key: ""
             path: ""
         commonControllerKey:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
         commonControllerCert:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
@@ -167,16 +144,10 @@ wso2:
             key: ""
             path: ""
         enforcerJwksKey:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""
         enforcerJwksCert:
-          azure:
-            secretName: ""
-            version: ""
           vault:
             key: ""
             path: ""

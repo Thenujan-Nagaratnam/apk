@@ -188,6 +188,40 @@ spec:
             - name: tmp
               mountPath: /tmp
           {{- if .Values.wso2.apk.secretProviderClass.enabled }}
+            {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/enforcer.key
+              subPath: tls.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/enforcer.crt
+              subPath: tls.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/apk.crt
+              subPath: enforcer-ca.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/enforcer.crt
+              subPath: enforcer-ca.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/adapter.crt
+              subPath: adapter-ca.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/router.crt
+              subPath: router-ca.crt
+            - name: enforcer-jwks-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/mg.key
+              subPath: tls.key
+            - name: enforcer-jwks-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/mg.pem
+              subPath: tls.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/mg.pem
+              subPath: enforcer-jwks-ca.crt
+            {{- if and .Values.wso2.apk.dp.enabled .Values.wso2.apk.dp.ratelimiter.enabled }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/ratelimiter.crt
+              subPath: tls.crt
+            {{- end }}
+            {{- else }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/enforcer.key
               subPath: enforcer.key
@@ -221,6 +255,7 @@ spec:
             - name: secret-provider-class
               mountPath: /home/wso2/security/truststore/ratelimiter.crt
               subPath: ratelimiter.crt
+            {{- end }}
             {{- end }}
           {{- else }}
             - name: enforcer-keystore-secret-volume
@@ -387,6 +422,25 @@ spec:
               value: "2"
           volumeMounts:
           {{- if .Values.wso2.apk.secretProviderClass.enabled }}
+            {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/router.key
+              subPath: tls.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/router.crt
+              subPath: tls.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/adapter.crt
+              subPath: adapter-ca.crt
+            - name: secret-provider-class
+              mountPath: /home/wso2/security/truststore/enforcer.crt
+              subPath: enforcer-ca.crt
+            {{- if and .Values.wso2.apk.dp.enabled .Values.wso2.apk.dp.ratelimiter.enabled }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/ratelimiter.crt
+              subPath: tls.crt
+            {{- end }}
+            {{- else }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/router.key
               subPath: router.key
@@ -404,6 +458,7 @@ spec:
             - name: secret-provider-class
               mountPath: /home/wso2/security/truststore/ratelimiter.crt
               subPath: ratelimiter.crt
+            {{- end }}
             {{- end }}
           {{- else }}
             - name: router-keystore-secret-volume
@@ -492,6 +547,16 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: {{ template "apk-helm.resource.prefix" . }}-secrets
+        {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+        - name: apk-server-tls-secret-volume
+          secret:
+            secretName: {{ template "apk-helm.resource.prefix" . }}-apk-server-tls
+            defaultMode: 420
+        - name: enforcer-jwks-tls-secret-volume
+          secret:
+            secretName: {{ template "apk-helm.resource.prefix" . }}-enforcer-jwks-tls
+            defaultMode: 420
+        {{- end }}
       {{- else }}
       {{ if and .Values.wso2.apk.dp.enabled .Values.wso2.apk.dp.ratelimiter.enabled }}
         - name: ratelimiter-truststore-secret-volume
