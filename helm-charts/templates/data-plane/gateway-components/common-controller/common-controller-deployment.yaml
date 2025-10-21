@@ -207,6 +207,10 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: {{ template "apk-helm.resource.prefix" . }}-secrets
+            {{- if .Values.wso2.apk.secretProviderClass.nodePublishSecretRef }}
+            nodePublishSecretRef:
+              name: {{ .Values.wso2.apk.secretProviderClass.nodePublishSecretRef }}
+            {{- end }}
         {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
         - name: apk-server-tls-secret-volume
           secret:

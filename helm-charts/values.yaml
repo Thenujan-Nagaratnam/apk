@@ -40,6 +40,7 @@ wso2:
       azure:
         keyVaultName: ""
         tenantId: ""
+      nodePublishSecretRef: ""
       secrets:
         apkServerKey:
           azure:
