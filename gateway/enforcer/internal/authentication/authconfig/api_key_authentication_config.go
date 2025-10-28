@@ -14,12 +14,12 @@
  *  limitations under the License.
  *
  */
- 
+
 package authconfig
 
 // APIKeyAuthenticationConfig represents the configuration for API key authentication
 type APIKeyAuthenticationConfig struct {
-    In                 string `json:"in"`                 // The location of the API key (e.g., header, query)
-    Name               string `json:"name"`              // The name of the API key field
-    SendTokenToUpstream bool   `json:"sendTokenToUpstream"` // Whether to send the token to upstream
+	In                  string `json:"in"`                  // The location of the API key (e.g., header, query)
+	Name                string `json:"name"`                // The name of the API key field
+	SendTokenToUpstream bool   `json:"sendTokenToUpstream"` // Whether to send the token to upstream
 }

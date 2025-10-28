@@ -38,15 +38,15 @@ func NewJWTIssuerStore() *JWTIssuerStore {
 
 // AddJWTIssuers adds a list of config to the store.
 // This method is thread-safe.
-func (s *JWTIssuerStore) AddJWTIssuers(apis []*subscription.JWTIssuer) {
+func (s *JWTIssuerStore) AddJWTIssuers(tokenIssuers []*subscription.JWTIssuer) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	orgWizeJWTIssuers := make(map[string]map[string]*subscription.JWTIssuer)
-	for _, api := range apis {
-		if _, ok := orgWizeJWTIssuers[api.Organization]; !ok {
-			orgWizeJWTIssuers[api.Organization] = make(map[string]*subscription.JWTIssuer)
+	for _, tokenIssuer := range tokenIssuers {
+		if _, ok := orgWizeJWTIssuers[tokenIssuer.Organization]; !ok {
+			orgWizeJWTIssuers[tokenIssuer.Organization] = make(map[string]*subscription.JWTIssuer)
 		}
-		orgWizeJWTIssuers[api.Organization][api.Issuer] = api
+		orgWizeJWTIssuers[tokenIssuer.Organization][tokenIssuer.Issuer] = tokenIssuer
 	}
 	s.jwtIssuers = orgWizeJWTIssuers
 }

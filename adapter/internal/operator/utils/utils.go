@@ -1020,8 +1020,8 @@ func GetSubscriptionToAPIIndexID(name string, version string) string {
 	return fmt.Sprintf("%s_%s", name, version)
 }
 
-// ConvertPemCertificatetoJWK converts the PEM certificate to JWK
-func ConvertPemCertificatetoJWK(cert string) string {
+// ConvertPemCertificateToJWK converts the PEM certificate to JWK
+func ConvertPemCertificateToJWK(cert string) string {
 	// Decode the PEM data
 	block, _ := pem.Decode([]byte(cert))
 	if block == nil || block.Type != "CERTIFICATE" {

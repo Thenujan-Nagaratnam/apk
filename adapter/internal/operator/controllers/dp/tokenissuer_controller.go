@@ -78,7 +78,7 @@ func GetJWTIssuers(ctx context.Context, client k8client.Client, gateway gwapiv1.
 					continue
 				}
 
-				signatureValidation.Certificate = &dpv1alpha1.ResolvedTLSConfig{ResolvedCertificate: utils.ConvertPemCertificatetoJWK(tlsCertificate)}
+				signatureValidation.Certificate = &dpv1alpha1.ResolvedTLSConfig{ResolvedCertificate: utils.ConvertPemCertificateToJWK(tlsCertificate)}
 			}
 			resolvedJwtIssuer.SignatureValidation = signatureValidation
 			if jwtIssuer.Spec.ClaimMappings != nil {

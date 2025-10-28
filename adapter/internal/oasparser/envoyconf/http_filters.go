@@ -228,7 +228,7 @@ func getRateLimitFilter() *hcmv3.HttpFilter {
 	return &rlFilter
 }
 
-// getExtProcessHTTPFilter gets ExtAauthz http filter.
+// getExtProcessHTTPFilter gets ExtAuthz http filter.
 func getExtProcessHTTPFilter() *hcmv3.HttpFilter {
 	conf := config.ReadConfigs()
 	sendReqHeadersToEnforcer := ext_process.ProcessingMode_SEND
