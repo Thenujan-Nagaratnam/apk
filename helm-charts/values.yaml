@@ -46,6 +46,9 @@ wso2:
           azure:
             secretName: ""
             version: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         ratelimiterRedisCredentials:
           azure:
             secretName: ""
@@ -53,6 +56,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         adapterKey:
           vault:
             key: ""
@@ -68,6 +74,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         enforcerKey:
           vault:
             key: ""
@@ -83,6 +92,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         routerKey:
           vault:
             key: ""
@@ -98,6 +110,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         ratelimiterKey:
           vault:
             key: ""
@@ -113,6 +128,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         commonControllerKey:
           vault:
             key: ""
@@ -128,6 +146,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         systemApiListenerKey:
           azure:
             secretName: ""
@@ -135,6 +156,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         systemApiListenerCert:
           azure:
             secretName: ""
@@ -149,6 +173,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         enforcerJwksCert:
           vault:
             key: ""
@@ -160,6 +187,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         tracingCaCert:
           azure:
             secretName: ""
@@ -167,6 +197,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
         tracingCert:
           azure:
             secretName: ""
@@ -174,6 +207,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            secretKey: ""
     helmHooks:
       webhooksCleanupEnabled: true
       webhooksCleanup:
