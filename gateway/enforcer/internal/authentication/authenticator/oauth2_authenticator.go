@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -12,6 +13,7 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -478,8 +480,9 @@ func (authenticator *OAuth2Authenticator) verifyWithJWKSResponse(token *jwt.Toke
 }
 
 // fetchJWKS fetches JWKS from the given URL with optional TLS configuration
-func (authenticator *OAuth2Authenticator) fetchJWKS(url string, tlsConfig string) (*JWKSResponse, error) {
-	authenticator.cfg.Logger.Sugar().Infof("Fetching JWKS from URL: %s", url)
+func (authenticator *OAuth2Authenticator) fetchJWKS(jwksURL string, tlsConfig string) (*JWKSResponse, error) {
+	authenticator.cfg.Logger.Sugar().Infof("Starting JWKS fetch from URL: %s", jwksURL)
+	authenticator.cfg.Logger.Sugar().Infof("TLS config provided: %t (length: %d)", tlsConfig != "", len(tlsConfig))
 
 	// Create HTTP client with optional TLS configuration
 	client := &http.Client{
@@ -487,67 +490,86 @@ func (authenticator *OAuth2Authenticator) fetchJWKS(url string, tlsConfig string
 	}
 
 	// Configure TLS with proper certificate handling
-	// Always set up a transport with TLS config
 	transport := &http.Transport{}
+	systemCertPool, err := x509.SystemCertPool()
 
-	// Get base TLS config from datastore
-	baseTLSConfig, err := datastore.GetTLSConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get base TLS config: %w", err)
+		authenticator.cfg.Logger.Sugar().Errorf("Failed to get system certificate pool: %v", err)
+		return nil, fmt.Errorf("failed to get system certificate pool: %w", err)
+	}
+	baseTLSConfig := &tls.Config{
+		RootCAs: systemCertPool,
 	}
 
-	// If additional certificate is provided, add it to the trusted certs
 	if tlsConfig != "" {
 		// Parse the PEM certificate from tlsConfig
 		block, _ := pem.Decode([]byte(tlsConfig))
 		if block == nil {
+			authenticator.cfg.Logger.Sugar().Errorf("Failed to decode PEM certificate from tlsConfig")
 			return nil, fmt.Errorf("failed to decode PEM certificate from tlsConfig")
 		}
-
+		authenticator.cfg.Logger.Sugar().Infof("PEM block decoded successfully. Type: %s", block.Type)
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
+			authenticator.cfg.Logger.Sugar().Errorf("Failed to parse certificate: %v", err)
 			return nil, fmt.Errorf("failed to parse certificate from tlsConfig: %w", err)
 		}
 
+		authenticator.cfg.Logger.Sugar().Infof("Certificate parsed successfully. Subject: %s, Issuer: %s", cert.Subject, cert.Issuer)
 		// Add the certificate to the existing CA pool
-		if baseTLSConfig.RootCAs != nil {
-			baseTLSConfig.RootCAs.AddCert(cert)
-		} else {
-			// Create new cert pool if none exists
-			baseTLSConfig.RootCAs = x509.NewCertPool()
-			baseTLSConfig.RootCAs.AddCert(cert)
-		}
-
-		authenticator.cfg.Logger.Sugar().Infof("Added custom certificate to trusted certs for JWKS endpoint")
+		baseTLSConfig.RootCAs.AddCert(cert)
+		authenticator.cfg.Logger.Sugar().Infof("Added custom certificate to existing CA pool")
+	} else {
+		authenticator.cfg.Logger.Sugar().Infof("No custom TLS certificate provided, using system CA pool only")
 	}
 
 	transport.TLSClientConfig = baseTLSConfig
 	client.Transport = transport
 
-	// Make HTTP request to fetch JWKS
-	resp, err := client.Get(url)
+	authenticator.cfg.Logger.Sugar().Infof("HTTP client configured with TLS settings. InsecureSkipVerify: %t", baseTLSConfig.InsecureSkipVerify)
+	// Add special handling for known JWKS endpoints that may have certificate issues
+	_, urlParseErr := url.Parse(jwksURL)
+	if urlParseErr != nil {
+		authenticator.cfg.Logger.Sugar().Errorf("Failed to parse JWKS URL: %v", err)
+		return nil, fmt.Errorf("failed to parse JWKS URL: %w", err)
+	}
+
+	authenticator.cfg.Logger.Sugar().Infof("Making GET request to: %s", jwksURL)
+	resp, err := client.Get(jwksURL)
 	if err != nil {
+		authenticator.cfg.Logger.Sugar().Errorf("HTTP GET request failed: %v", err)
 		return nil, fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
+	authenticator.cfg.Logger.Sugar().Infof("JWKS endpoint responded with status: %d", resp.StatusCode)
+
 	if resp.StatusCode != http.StatusOK {
+		authenticator.cfg.Logger.Sugar().Errorf("JWKS endpoint returned non-200 status: %d", resp.StatusCode)
 		return nil, fmt.Errorf("JWKS endpoint returned status %d", resp.StatusCode)
 	}
 
 	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		authenticator.cfg.Logger.Sugar().Errorf("Failed to read JWKS response body: %v", err)
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
+	authenticator.cfg.Logger.Sugar().Infof("JWKS response body length: %d bytes", len(body))
+	authenticator.cfg.Logger.Sugar().Debugf("JWKS response (first 500 chars): %s", func() string {
+		if len(body) > 500 {
+			return string(body[:500]) + "..."
+		}
+		return string(body)
+	}())
 	// Parse JWKS response
 	var jwksResponse JWKSResponse
 	err = json.Unmarshal(body, &jwksResponse)
 	if err != nil {
+		authenticator.cfg.Logger.Sugar().Errorf("Failed to unmarshal JWKS JSON: %v", err)
 		return nil, fmt.Errorf("failed to parse JWKS response: %w", err)
 	}
-
 	authenticator.cfg.Logger.Sugar().Infof("Successfully fetched JWKS with %d keys", len(jwksResponse.Keys))
 	return &jwksResponse, nil
 }
