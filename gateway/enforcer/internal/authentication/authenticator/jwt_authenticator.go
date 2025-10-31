@@ -26,7 +26,7 @@ const (
 // Authenticate performs the authentication.
 func (authenticator *JWTAuthenticator) Authenticate(rch *requestconfig.Holder) AuthenticationResponse {
 	if rch != nil && rch.ExternalProcessingEnvoyMetadata != nil && rch.ExternalProcessingEnvoyMetadata.AuthenticationData != nil {
-		jwtValidationInfo := authenticator.jwtTransformer.TransformJWTClaims(rch.MatchedAPI.OrganizationID, rch.ExternalProcessingEnvoyMetadata.AuthenticationData, JWTAuthType)
+		jwtValidationInfo := authenticator.jwtTransformer.TransformJWTClaims(rch.MatchedAPI.OrganizationID, rch.ExternalProcessingEnvoyMetadata.AuthenticationData, JWTAuthType, "")
 		if jwtValidationInfo != nil {
 			if authenticator.revokedJTIStore != nil && authenticator.revokedJTIStore.IsJTIRevoked(jwtValidationInfo.JTI) {
 				return AuthenticationResponse{Authenticated: false, MandatoryAuthentication: authenticator.mandatory, ErrorCode: ExpiredToken, ErrorMessage: ExpiredTokenMessage, ContinueToNextAuthenticator: false}

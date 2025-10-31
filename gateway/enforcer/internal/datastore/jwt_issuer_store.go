@@ -64,9 +64,9 @@ func (s *JWTIssuerStore) GetJWTIssuerByOrganizationAndIssuer(organization, issue
 	return nil
 }
 
-// GetJWTISsuersByOrganization returns the JWTIssuers for the given organization.
+// GetJWTIssuersByOrganization returns the JWTIssuers for the given organization.
 // This method is thread-safe.
-func (s *JWTIssuerStore) GetJWTISsuersByOrganization(organization string) map[string]*subscription.JWTIssuer {
+func (s *JWTIssuerStore) GetJWTIssuersByOrganization(organization string) map[string]*subscription.JWTIssuer {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if orgWiseJWTIssuers, ok := s.jwtIssuers[organization]; ok {

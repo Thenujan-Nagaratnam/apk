@@ -39,9 +39,9 @@ func (authenticator *Authenticator) Authenticate(rch *requestconfig.Holder) *dto
 		for authenticationType, mandatory := range applicationSecurity {
 			if authenticationType == "OAuth2" {
 				authenticator.cfg.Logger.Sugar().Debugf("OAuth2 authentication is enabled for the API")
-				OAuth2Authenticator := NewOAuth2Authenticator(authenticator.jwtTransformer, authenticator.revokedJTIStore, mandatory)
+				OAuth2Authenticator := NewOAuth2Authenticator(authenticator.jwtTransformer, authenticator.revokedJTIStore, mandatory, authenticator.cfg)
 				authenticationResponse = OAuth2Authenticator.Authenticate(rch)
-				authenticator.cfg.Logger.Sugar().Debugf("OAuth2 authentication response %+v", authenticationResponse)
+				authenticator.cfg.Logger.Sugar().Infof("OAuth2 authentication response %+v", authenticationResponse)
 			} else if authenticationType == "JWT" {
 				authenticator.cfg.Logger.Sugar().Debugf("JWT authentication is enabled for the API")
 				JWTAuthenticator := NewJWTAuthenticator(authenticator.jwtTransformer, authenticator.revokedJTIStore, mandatory)
