@@ -71,7 +71,7 @@ const (
 // Authenticate performs the authentication.
 func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder) AuthenticationResponse {
 	if rch == nil {
-		authenticator.cfg.Logger.Sugar().Infof("Request config holder is nil")
+		authenticator.cfg.Logger.Sugar().Debugf("Request config holder is nil")
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -84,7 +84,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Extract OAuth2 token from request headers
 	authHeader := getOAuth2Header(rch)
 	if authHeader == "" {
-		authenticator.cfg.Logger.Sugar().Infof("Authorization header is missing")
+		authenticator.cfg.Logger.Sugar().Debugf("Authorization header is missing")
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -97,7 +97,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Extract Bearer token from the authorization header
 	jwtToken, found := extractBearerToken(authHeader)
 	if !found || jwtToken == "" {
-		authenticator.cfg.Logger.Sugar().Infof("Bearer token is missing in the authorization header")
+		authenticator.cfg.Logger.Sugar().Debugf("Bearer token is missing in the authorization header")
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -108,7 +108,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	}
 
 	if jwtToken == "" {
-		authenticator.cfg.Logger.Sugar().Infof("JWT token cannot be empty")
+		authenticator.cfg.Logger.Sugar().Debugf("JWT token cannot be empty")
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -121,7 +121,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Parse the JWT token to extract claims and token info
 	signedJWTInfo, err := authenticator.parseSignedJWT(jwtToken, rch.MatchedAPI.OrganizationID)
 	if err != nil {
-		authenticator.cfg.Logger.Sugar().Infof("Error parsing JWT token: %v", err)
+		authenticator.cfg.Logger.Sugar().Debugf("Error parsing JWT token: %v", err)
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -134,7 +134,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Check JWT expiry
 	err = authenticator.validateJWTExpiry(signedJWTInfo.Claims)
 	if err != nil {
-		authenticator.cfg.Logger.Sugar().Infof("JWT token expired or invalid timing: %v", err)
+		authenticator.cfg.Logger.Sugar().Debugf("JWT token expired or invalid timing: %v", err)
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -147,7 +147,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Parse and validate the JWT token directly
 	jwtValidationInfo, err := authenticator.extractJWTValidationInfo(jwtToken, rch.MatchedAPI.OrganizationID, signedJWTInfo)
 	if err != nil || jwtValidationInfo == nil {
-		authenticator.cfg.Logger.Sugar().Infof("Error parsing and validating JWT token: %v", err)
+		authenticator.cfg.Logger.Sugar().Debugf("Error parsing and validating JWT token: %v", err)
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -158,7 +158,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	}
 
 	// Check for revoked tokens and validate
-	authenticator.cfg.Logger.Sugar().Infof("JWT validation info: %+v", jwtValidationInfo)
+	authenticator.cfg.Logger.Sugar().Debugf("JWT validation info: %+v", jwtValidationInfo)
 	if authenticator.revokedJTIStore != nil && authenticator.revokedJTIStore.IsJTIRevoked(jwtValidationInfo.JTI) {
 		return AuthenticationResponse{
 			Authenticated:               false,
@@ -218,10 +218,10 @@ func (authenticator *OAuth2Authenticator) extractJWTValidationInfo(jwtToken stri
 	if iss, ok := signedJWTInfo.Claims["iss"].(string); ok {
 		issuer = iss
 	}
-	authenticator.cfg.Logger.Sugar().Infof("Extracted issuer from JWT claims: %s", issuer)
+	authenticator.cfg.Logger.Sugar().Debugf("Extracted issuer from JWT claims: %s", issuer)
 
 	if issuer == "" {
-		authenticator.cfg.Logger.Sugar().Infof("Issuer claim is missing in the JWT token")
+		authenticator.cfg.Logger.Sugar().Debugf("Issuer claim is missing in the JWT token")
 		return nil, fmt.Errorf(InvalidCredentialsMessage)
 	}
 
@@ -243,7 +243,7 @@ func (authenticator *OAuth2Authenticator) extractJWTValidationInfo(jwtToken stri
 		return nil, fmt.Errorf(InvalidCredentialsMessage)
 	}
 
-	authenticator.cfg.Logger.Sugar().Infof("Successfully created JWT validation info for issuer: %s", issuer)
+	authenticator.cfg.Logger.Sugar().Debugf("Successfully created JWT validation info for issuer: %s", issuer)
 	return jwtValidationInfo, nil
 }
 
@@ -266,12 +266,12 @@ func (authenticator *OAuth2Authenticator) validateJWTExpiry(claims jwt.MapClaims
 		}
 
 		if now >= expTime {
-			authenticator.cfg.Logger.Sugar().Infof("JWT token expired: exp=%d, now=%d", expTime, now)
+			authenticator.cfg.Logger.Sugar().Debugf("JWT token expired: exp=%d, now=%d", expTime, now)
 			return fmt.Errorf("token expired at %d, current time is %d", expTime, now)
 		}
-		authenticator.cfg.Logger.Sugar().Infof("JWT token expiry validation passed: exp=%d, now=%d", expTime, now)
+		authenticator.cfg.Logger.Sugar().Debugf("JWT token expiry validation passed: exp=%d, now=%d", expTime, now)
 	} else {
-		authenticator.cfg.Logger.Sugar().Infof("JWT token missing exp claim - treating as non-expiring")
+		authenticator.cfg.Logger.Sugar().Debugf("JWT token missing exp claim - treating as non-expiring")
 	}
 
 	// Check not before time (nbf) - optional
@@ -289,10 +289,10 @@ func (authenticator *OAuth2Authenticator) validateJWTExpiry(claims jwt.MapClaims
 		}
 
 		if now < nbfTime {
-			authenticator.cfg.Logger.Sugar().Infof("JWT token not yet valid: nbf=%d, now=%d", nbfTime, now)
+			authenticator.cfg.Logger.Sugar().Debugf("JWT token not yet valid: nbf=%d, now=%d", nbfTime, now)
 			return fmt.Errorf("token not valid before %d, current time is %d", nbfTime, now)
 		}
-		authenticator.cfg.Logger.Sugar().Infof("JWT token nbf validation passed: nbf=%d, now=%d", nbfTime, now)
+		authenticator.cfg.Logger.Sugar().Debugf("JWT token nbf validation passed: nbf=%d, now=%d", nbfTime, now)
 	}
 
 	// Check issued at time (iat) - optional, just for logging
@@ -310,7 +310,7 @@ func (authenticator *OAuth2Authenticator) validateJWTExpiry(claims jwt.MapClaims
 		}
 
 		if iatTime > 0 {
-			authenticator.cfg.Logger.Sugar().Infof("JWT token issued at: %d (current time: %d)", iatTime, now)
+			authenticator.cfg.Logger.Sugar().Debugf("JWT token issued at: %d (current time: %d)", iatTime, now)
 		}
 	}
 
@@ -370,7 +370,7 @@ func (authenticator *OAuth2Authenticator) validateSignature(token *jwt.Token, to
 		keyID = kid
 	}
 
-	authenticator.cfg.Logger.Sugar().Infof("Validating JWT signature for issuer: %s, keyID: %s", tokenIssuer.Issuer, keyID)
+	authenticator.cfg.Logger.Sugar().Debugf("Validating JWT signature for issuer: %s, keyID: %s", tokenIssuer.Issuer, keyID)
 
 	// Check if we have certificate configuration
 	if tokenIssuer.Certificate == nil {
@@ -382,15 +382,15 @@ func (authenticator *OAuth2Authenticator) validateSignature(token *jwt.Token, to
 		return fmt.Errorf("no signing method specified in token")
 	}
 
-	authenticator.cfg.Logger.Sugar().Infof("certificate content data: %s", tokenIssuer.Certificate.Certificate)
+	authenticator.cfg.Logger.Sugar().Debugf("certificate content data: %s", tokenIssuer.Certificate.Certificate)
 
 	// Check if we have JWKS URL configuration (remote JWKS scenario)
 	if tokenIssuer.Certificate.Jwks != nil && tokenIssuer.Certificate.Jwks.Url != "" {
-		authenticator.cfg.Logger.Sugar().Infof("Using remote JWKS from URL for signature verification")
+		authenticator.cfg.Logger.Sugar().Debugf("Using remote JWKS from URL for signature verification")
 		return authenticator.verifyWithJWKS(token, keyID, tokenIssuer.Certificate.Jwks.Url, tokenIssuer.Certificate.Jwks.Tls, "")
 	} else if tokenIssuer.Certificate.Certificate != "" {
 		// Treat certificate field as local JWKS data
-		authenticator.cfg.Logger.Sugar().Infof("Using local JWKS from certificate field for signature verification")
+		authenticator.cfg.Logger.Sugar().Debugf("Using local JWKS from certificate field for signature verification")
 		return authenticator.verifyWithJWKS(token, keyID, "", "", tokenIssuer.Certificate.GetCertificate())
 	}
 
@@ -418,11 +418,11 @@ func (authenticator *OAuth2Authenticator) verifyWithJWKS(token *jwt.Token, keyID
 func (authenticator *OAuth2Authenticator) getJWKSData(jwksURL, tlsConfig, localJWKSData string) (*JWKSResponse, error) {
 	if jwksURL != "" {
 		// Remote JWKS scenario
-		authenticator.cfg.Logger.Sugar().Infof("Fetching JWKS from remote URL: %s", jwksURL)
+		authenticator.cfg.Logger.Sugar().Debugf("Fetching JWKS from remote URL: %s", jwksURL)
 		return authenticator.fetchJWKS(jwksURL, tlsConfig)
 	} else if localJWKSData != "" {
 		// Local JWKS scenario
-		authenticator.cfg.Logger.Sugar().Infof("Using local JWKS data")
+		authenticator.cfg.Logger.Sugar().Debugf("Using local JWKS data")
 		var jwksResponse JWKSResponse
 		err := json.Unmarshal([]byte(localJWKSData), &jwksResponse)
 		if err != nil {
@@ -435,7 +435,7 @@ func (authenticator *OAuth2Authenticator) getJWKSData(jwksURL, tlsConfig, localJ
 
 // verifyWithJWKSResponse verifies JWT signature using a JWKS response (common logic for both local and remote)
 func (authenticator *OAuth2Authenticator) verifyWithJWKSResponse(token *jwt.Token, jwksResponse *JWKSResponse, keyID string, isRemote bool) error {
-	authenticator.cfg.Logger.Sugar().Infof("Verifying JWT signature with JWKS data, keyID: %s", keyID)
+	authenticator.cfg.Logger.Sugar().Debugf("Verifying JWT signature with JWKS data, keyID: %s", keyID)
 
 	// Find the key by keyID
 	var targetJWK *JWK
@@ -481,11 +481,12 @@ func (authenticator *OAuth2Authenticator) verifyWithJWKSResponse(token *jwt.Toke
 
 // fetchJWKS fetches JWKS from the given URL with optional TLS configuration
 func (authenticator *OAuth2Authenticator) fetchJWKS(jwksURL string, tlsConfig string) (*JWKSResponse, error) {
-	authenticator.cfg.Logger.Sugar().Infof("Starting JWKS fetch from URL: %s", jwksURL)
-	authenticator.cfg.Logger.Sugar().Infof("TLS config provided: %t (length: %d)", tlsConfig != "", len(tlsConfig))
+	authenticator.cfg.Logger.Sugar().Debugf("Starting JWKS fetch from URL: %s", jwksURL)
+	authenticator.cfg.Logger.Sugar().Debugf("TLS config provided: %t (length: %d)", tlsConfig != "", len(tlsConfig))
 
 	// Create HTTP client with optional TLS configuration
 	client := &http.Client{
+		// TODO: configure
 		Timeout: 30 * time.Second,
 	}
 
@@ -508,25 +509,25 @@ func (authenticator *OAuth2Authenticator) fetchJWKS(jwksURL string, tlsConfig st
 			authenticator.cfg.Logger.Sugar().Errorf("Failed to decode PEM certificate from tlsConfig")
 			return nil, fmt.Errorf("failed to decode PEM certificate from tlsConfig")
 		}
-		authenticator.cfg.Logger.Sugar().Infof("PEM block decoded successfully. Type: %s", block.Type)
+		authenticator.cfg.Logger.Sugar().Debugf("PEM block decoded successfully. Type: %s", block.Type)
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			authenticator.cfg.Logger.Sugar().Errorf("Failed to parse certificate: %v", err)
 			return nil, fmt.Errorf("failed to parse certificate from tlsConfig: %w", err)
 		}
 
-		authenticator.cfg.Logger.Sugar().Infof("Certificate parsed successfully. Subject: %s, Issuer: %s", cert.Subject, cert.Issuer)
+		authenticator.cfg.Logger.Sugar().Debugf("Certificate parsed successfully. Subject: %s, Issuer: %s", cert.Subject, cert.Issuer)
 		// Add the certificate to the existing CA pool
 		baseTLSConfig.RootCAs.AddCert(cert)
-		authenticator.cfg.Logger.Sugar().Infof("Added custom certificate to existing CA pool")
+		authenticator.cfg.Logger.Sugar().Debugf("Added custom certificate to existing CA pool")
 	} else {
-		authenticator.cfg.Logger.Sugar().Infof("No custom TLS certificate provided, using system CA pool only")
+		authenticator.cfg.Logger.Sugar().Debugf("No custom TLS certificate provided, using system CA pool only")
 	}
 
 	transport.TLSClientConfig = baseTLSConfig
 	client.Transport = transport
 
-	authenticator.cfg.Logger.Sugar().Infof("HTTP client configured with TLS settings. InsecureSkipVerify: %t", baseTLSConfig.InsecureSkipVerify)
+	authenticator.cfg.Logger.Sugar().Debugf("HTTP client configured with TLS settings. InsecureSkipVerify: %t", baseTLSConfig.InsecureSkipVerify)
 	// Add special handling for known JWKS endpoints that may have certificate issues
 	_, urlParseErr := url.Parse(jwksURL)
 	if urlParseErr != nil {
@@ -534,7 +535,7 @@ func (authenticator *OAuth2Authenticator) fetchJWKS(jwksURL string, tlsConfig st
 		return nil, fmt.Errorf("failed to parse JWKS URL: %w", err)
 	}
 
-	authenticator.cfg.Logger.Sugar().Infof("Making GET request to: %s", jwksURL)
+	authenticator.cfg.Logger.Sugar().Debugf("Making GET request to: %s", jwksURL)
 	resp, err := client.Get(jwksURL)
 	if err != nil {
 		authenticator.cfg.Logger.Sugar().Errorf("HTTP GET request failed: %v", err)
@@ -542,7 +543,7 @@ func (authenticator *OAuth2Authenticator) fetchJWKS(jwksURL string, tlsConfig st
 	}
 	defer resp.Body.Close()
 
-	authenticator.cfg.Logger.Sugar().Infof("JWKS endpoint responded with status: %d", resp.StatusCode)
+	authenticator.cfg.Logger.Sugar().Debugf("JWKS endpoint responded with status: %d", resp.StatusCode)
 
 	if resp.StatusCode != http.StatusOK {
 		authenticator.cfg.Logger.Sugar().Errorf("JWKS endpoint returned non-200 status: %d", resp.StatusCode)
@@ -556,7 +557,7 @@ func (authenticator *OAuth2Authenticator) fetchJWKS(jwksURL string, tlsConfig st
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	authenticator.cfg.Logger.Sugar().Infof("JWKS response body length: %d bytes", len(body))
+	authenticator.cfg.Logger.Sugar().Debugf("JWKS response body length: %d bytes", len(body))
 	authenticator.cfg.Logger.Sugar().Debugf("JWKS response (first 500 chars): %s", func() string {
 		if len(body) > 500 {
 			return string(body[:500]) + "..."
@@ -570,7 +571,7 @@ func (authenticator *OAuth2Authenticator) fetchJWKS(jwksURL string, tlsConfig st
 		authenticator.cfg.Logger.Sugar().Errorf("Failed to unmarshal JWKS JSON: %v", err)
 		return nil, fmt.Errorf("failed to parse JWKS response: %w", err)
 	}
-	authenticator.cfg.Logger.Sugar().Infof("Successfully fetched JWKS with %d keys", len(jwksResponse.Keys))
+	authenticator.cfg.Logger.Sugar().Debugf("Successfully fetched JWKS with %d keys", len(jwksResponse.Keys))
 	return &jwksResponse, nil
 }
 
@@ -668,8 +669,8 @@ func (authenticator *OAuth2Authenticator) extractECDSAPublicKey(jwk *JWK) (*ecds
 
 // verifyWithCertificate verifies JWT signature using a certificate or JWKS data
 func (authenticator *OAuth2Authenticator) verifyWithCertificate(token *jwt.Token, certData string) error {
-	authenticator.cfg.Logger.Sugar().Infof("Verifying JWT signature with certificate")
-	authenticator.cfg.Logger.Sugar().Infof("Certificate data: %s", certData)
+	authenticator.cfg.Logger.Sugar().Debugf("Verifying JWT signature with certificate")
+	authenticator.cfg.Logger.Sugar().Debugf("Certificate data: %s", certData)
 
 	var cert *x509.Certificate
 	var err error
@@ -722,7 +723,7 @@ func (authenticator *OAuth2Authenticator) verifyWithCertificate(token *jwt.Token
 
 // verifyRSASignature verifies RSA signatures
 func (authenticator *OAuth2Authenticator) verifyRSASignature(token *jwt.Token, rsaPublicKey *rsa.PublicKey) error {
-	authenticator.cfg.Logger.Sugar().Infof("Verifying RSA signature with algorithm: %s", token.Method.Alg())
+	authenticator.cfg.Logger.Sugar().Debugf("Verifying RSA signature with algorithm: %s", token.Method.Alg())
 
 	// Parse the token parts to get the signing string and signature
 	parts := strings.Split(token.Raw, ".")
@@ -754,13 +755,13 @@ func (authenticator *OAuth2Authenticator) verifyRSASignature(token *jwt.Token, r
 		return fmt.Errorf("RSA signature verification failed: %w", err)
 	}
 
-	authenticator.cfg.Logger.Sugar().Infof("RSA signature verification successful")
+	authenticator.cfg.Logger.Sugar().Debugf("RSA signature verification successful")
 	return nil
 }
 
 // verifyECDSASignature verifies ECDSA signatures
 func (authenticator *OAuth2Authenticator) verifyECDSASignature(token *jwt.Token, ecdsaPublicKey *ecdsa.PublicKey) error {
-	authenticator.cfg.Logger.Sugar().Infof("Verifying ECDSA signature with algorithm: %s", token.Method.Alg())
+	authenticator.cfg.Logger.Sugar().Debugf("Verifying ECDSA signature with algorithm: %s", token.Method.Alg())
 
 	// Parse the token parts to get the signing string and signature
 	parts := strings.Split(token.Raw, ".")
@@ -792,13 +793,13 @@ func (authenticator *OAuth2Authenticator) verifyECDSASignature(token *jwt.Token,
 		return fmt.Errorf("ECDSA signature verification failed: %w", err)
 	}
 
-	authenticator.cfg.Logger.Sugar().Infof("ECDSA signature verification successful")
+	authenticator.cfg.Logger.Sugar().Debugf("ECDSA signature verification successful")
 	return nil
 }
 
 // verifyWithJWKSData verifies JWT signature using JWKS data in string format
 func (authenticator *OAuth2Authenticator) verifyWithJWKSData(token *jwt.Token, jwksData string) error {
-	authenticator.cfg.Logger.Sugar().Infof("Verifying JWT signature with JWKS data")
+	authenticator.cfg.Logger.Sugar().Debugf("Verifying JWT signature with JWKS data")
 
 	// Extract the key ID from the JWT header
 	var keyID string
