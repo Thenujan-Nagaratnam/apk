@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -487,21 +486,43 @@ func (authenticator *OAuth2Authenticator) fetchJWKS(url string, tlsConfig string
 		Timeout: 30 * time.Second,
 	}
 
-	// Configure TLS if specified
-	if tlsConfig != "" {
-		// Parse TLS configuration - this could be "insecure" or certificate data
-		transport := &http.Transport{}
-		//TODO: tlsConfig here is a certificate, so need to add to the transport TLS config
-		// If its not given, then the default truststore certs need to be used
-		if tlsConfig == "insecure" {
-			transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-		} else {
-			// Assume it's a certificate or certificate configuration
-			// For now, use default TLS config
-			transport.TLSClientConfig = &tls.Config{}
-		}
-		client.Transport = transport
+	// Configure TLS with proper certificate handling
+	// Always set up a transport with TLS config
+	transport := &http.Transport{}
+
+	// Get base TLS config from datastore
+	baseTLSConfig, err := datastore.GetTLSConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get base TLS config: %w", err)
 	}
+
+	// If additional certificate is provided, add it to the trusted certs
+	if tlsConfig != "" {
+		// Parse the PEM certificate from tlsConfig
+		block, _ := pem.Decode([]byte(tlsConfig))
+		if block == nil {
+			return nil, fmt.Errorf("failed to decode PEM certificate from tlsConfig")
+		}
+
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse certificate from tlsConfig: %w", err)
+		}
+
+		// Add the certificate to the existing CA pool
+		if baseTLSConfig.RootCAs != nil {
+			baseTLSConfig.RootCAs.AddCert(cert)
+		} else {
+			// Create new cert pool if none exists
+			baseTLSConfig.RootCAs = x509.NewCertPool()
+			baseTLSConfig.RootCAs.AddCert(cert)
+		}
+
+		authenticator.cfg.Logger.Sugar().Infof("Added custom certificate to trusted certs for JWKS endpoint")
+	}
+
+	transport.TLSClientConfig = baseTLSConfig
+	client.Transport = transport
 
 	// Make HTTP request to fetch JWKS
 	resp, err := client.Get(url)

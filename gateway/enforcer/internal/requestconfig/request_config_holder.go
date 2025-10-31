@@ -18,6 +18,7 @@
 package requestconfig
 
 import (
+	envoy_service_proc_v3 "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
 	subscription_model "github.com/wso2/apk/common-go-libs/pkg/server/model"
 	"github.com/wso2/apk/gateway/enforcer/internal/dto"
 )
@@ -33,4 +34,5 @@ type Holder struct {
 	MatchedSubscription               *subscription_model.Subscription
 	MatchedApplication                *subscription_model.Application
 	AuthenticatedAuthenticationType   string
+	Request                           *envoy_service_proc_v3.ProcessingRequest
 }
