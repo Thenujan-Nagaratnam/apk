@@ -46,7 +46,7 @@ func (transformer *JWTTransformer) TransformJWTClaims(organization string, jwtAu
 		return nil
 	}
 	var jwtValidationInfoSuccess *dto.JWTValidationInfo
-	var jwtValidationDebugfailure *dto.JWTValidationInfo
+	var jwtValidationInfofailure *dto.JWTValidationInfo
 	jwtAuthenticationDataSuccess, exists := jwtAuthenticationData.SucessData[issuer+"-"+tokenType+"-payload"]
 	if exists {
 		jwtValidationInfoSuccess = &dto.JWTValidationInfo{Valid: true, Issuer: jwtAuthenticationDataSuccess.Issuer, Claims: make(map[string]interface{})}
@@ -103,15 +103,15 @@ func (transformer *JWTTransformer) TransformJWTClaims(organization string, jwtAu
 	}
 	jwtAuthenticationDataFailure, exists := jwtAuthenticationData.FailedData[tokenIssuer.Issuer+"-"+tokenType+"-failed"]
 	if exists {
-		jwtValidationDebugfailure = &dto.JWTValidationInfo{Valid: false, ValidationCode: jwtAuthenticationDataFailure.Code, ValidationMessage: jwtAuthenticationDataFailure.Message}
+		jwtValidationInfofailure = &dto.JWTValidationInfo{Valid: false, ValidationCode: jwtAuthenticationDataFailure.Code, ValidationMessage: jwtAuthenticationDataFailure.Message}
 	} else {
 		jwtAuthenticationDataFailure, exists := jwtAuthenticationData.FailedData["unknown-"+tokenType+"-failed"]
 		if exists {
-			jwtValidationDebugfailure = &dto.JWTValidationInfo{Valid: false, ValidationCode: jwtAuthenticationDataFailure.Code, ValidationMessage: jwtAuthenticationDataFailure.Message}
+			jwtValidationInfofailure = &dto.JWTValidationInfo{Valid: false, ValidationCode: jwtAuthenticationDataFailure.Code, ValidationMessage: jwtAuthenticationDataFailure.Message}
 		}
 	}
-	if jwtValidationDebugfailure != nil {
-		return jwtValidationDebugfailure
+	if jwtValidationInfofailure != nil {
+		return jwtValidationInfofailure
 	}
 	return nil
 }

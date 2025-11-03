@@ -183,6 +183,7 @@ func StartExternalProcessingServer(cfg *config.Server, apiStore *datastore.APISt
 // If an unknown request type is received, it logs the unknown request type.
 func (s *ExternalProcessingServer) Process(srv envoy_service_proc_v3.ExternalProcessor_ProcessServer) error {
 	ctx := srv.Context()
+	var persistedRequest *envoy_service_proc_v3.ProcessingRequest
 	for {
 		select {
 		case <-ctx.Done():
@@ -209,6 +210,7 @@ func (s *ExternalProcessingServer) Process(srv envoy_service_proc_v3.ExternalPro
 			s.cfg.Logger.Sugar().Debugf("External metadata attributes %v", req.GetAttributes())
 			attributes, err := extractExternalProcessingXDSRouteMetadataAttributes(req.GetAttributes())
 			requestConfigHolder.ExternalProcessingEnvoyAttributes = attributes
+			persistedRequest = req
 			if err != nil {
 				s.cfg.Logger.Error(err, "failed to extract context attributes")
 				resp = &envoy_service_proc_v3.ProcessingResponse{
@@ -607,6 +609,7 @@ func (s *ExternalProcessingServer) Process(srv envoy_service_proc_v3.ExternalPro
 			rch := &requestconfig.Holder{}
 			rch.MatchedAPI = matchedAPI
 			rch.ExternalProcessingEnvoyMetadata = metadata
+			rch.Request = persistedRequest
 			if matchedAPI.IsGraphQLAPI() {
 				if immediateResponse := graphql.ValidateGraphQLOperation(s.authenticator, rch, metadata, s.subscriptionApplicationDatastore, s.cfg, string(req.GetRequestBody().Body), s.jwtTransformer, s.revokedJTIStore); immediateResponse != nil {
 					headers := &envoy_service_proc_v3.HeaderMutation{
