@@ -53,14 +53,23 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         adapterKey:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         adapterCert:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         adapterCaCert:
           azure:
             secretName: ""
@@ -68,14 +77,23 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         enforcerKey:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         enforcerCert:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         enforcerCaCert:
           azure:
             secretName: ""
@@ -83,14 +101,23 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         routerKey:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         routerCert:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         routerCaCert:
           azure:
             secretName: ""
@@ -98,14 +125,23 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         ratelimiterKey:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         ratelimiterCert:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         ratelimiterCaCert:
           azure:
             secretName: ""
@@ -113,14 +149,23 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         commonControllerKey:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         commonControllerCert:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         commonControllerCaCert:
           azure:
             secretName: ""
@@ -128,6 +173,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         systemApiListenerKey:
           azure:
             secretName: ""
@@ -135,6 +183,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         systemApiListenerCert:
           azure:
             secretName: ""
@@ -142,6 +193,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         enforcerJwksKey:
           azure:
             secretName: ""
@@ -149,10 +203,16 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         enforcerJwksCert:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         enforcerJwksCaCert:
           azure:
             secretName: ""
@@ -160,6 +220,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         tracingCaCert:
           azure:
             secretName: ""
@@ -167,6 +230,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
         tracingCert:
           azure:
             secretName: ""
@@ -174,6 +240,9 @@ wso2:
           vault:
             key: ""
             path: ""
+          aws:
+            secretName: ""
+            version: ""
     helmHooks:
       webhooksCleanupEnabled: true
       webhooksCleanup:
