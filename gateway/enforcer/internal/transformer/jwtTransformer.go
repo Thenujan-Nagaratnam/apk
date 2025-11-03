@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/wso2/apk/adapter/pkg/discovery/api/wso2/discovery/subscription"
 	"github.com/wso2/apk/gateway/enforcer/internal/config"
 	"github.com/wso2/apk/gateway/enforcer/internal/datastore"
@@ -593,8 +593,14 @@ func (transformer *JWTTransformer) verifyRSASignature(token *jwt.Token, rsaPubli
 		return fmt.Errorf("unsupported RSA algorithm: %s", token.Method.Alg())
 	}
 
+	// Decode the base64 signature
+	sigBytes, err := base64.RawURLEncoding.DecodeString(signature)
+	if err != nil {
+		return fmt.Errorf("failed to decode signature: %w", err)
+	}
+
 	// Verify the signature
-	err := signingMethod.Verify(signingString, signature, rsaPublicKey)
+	err = signingMethod.Verify(signingString, sigBytes, rsaPublicKey)
 	if err != nil {
 		transformer.cfg.Logger.Sugar().Errorf("RSA signature verification failed: %v", err)
 		return fmt.Errorf("RSA signature verification failed: %w", err)
@@ -617,6 +623,11 @@ func (transformer *JWTTransformer) verifyECDSASignature(token *jwt.Token, ecdsaP
 	// Create signing string (header.payload)
 	signingString := parts[0] + "." + parts[1]
 	signature := parts[2]
+	// Decode the base64 signature
+	sigBytes, err := base64.RawURLEncoding.DecodeString(signature)
+	if err != nil {
+		return fmt.Errorf("failed to decode signature: %w", err)
+	}
 
 	// Use the appropriate ECDSA signing method based on the algorithm
 	var signingMethod jwt.SigningMethod
@@ -632,7 +643,7 @@ func (transformer *JWTTransformer) verifyECDSASignature(token *jwt.Token, ecdsaP
 	}
 
 	// Verify the signature
-	err := signingMethod.Verify(signingString, signature, ecdsaPublicKey)
+	err = signingMethod.Verify(signingString, sigBytes, ecdsaPublicKey)
 	if err != nil {
 		transformer.cfg.Logger.Sugar().Errorf("ECDSA signature verification failed: %v", err)
 		return fmt.Errorf("ECDSA signature verification failed: %w", err)
