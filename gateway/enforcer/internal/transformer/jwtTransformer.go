@@ -41,12 +41,12 @@ func (transformer *JWTTransformer) TransformJWTClaims(organization string, jwtAu
 		return nil
 	}
 	tokenIssuer := transformer.tokenissuerStore.GetJWTIssuerByOrganizationAndIssuer(organization, issuer)
-	transformer.cfg.Logger.Sugar().Infof("Token issuers for organization %s: %v", organization, tokenIssuer)
+	transformer.cfg.Logger.Sugar().Debugf("Token issuers for organization %s: %v", organization, tokenIssuer)
 	if tokenIssuer == nil {
 		return nil
 	}
 	var jwtValidationInfoSuccess *dto.JWTValidationInfo
-	var jwtValidationInfoFailure *dto.JWTValidationInfo
+	var jwtValidationDebugfailure *dto.JWTValidationInfo
 	jwtAuthenticationDataSuccess, exists := jwtAuthenticationData.SucessData[issuer+"-"+tokenType+"-payload"]
 	if exists {
 		jwtValidationInfoSuccess = &dto.JWTValidationInfo{Valid: true, Issuer: jwtAuthenticationDataSuccess.Issuer, Claims: make(map[string]interface{})}
@@ -98,20 +98,20 @@ func (transformer *JWTTransformer) TransformJWTClaims(organization string, jwtAu
 				}
 			}
 		}
-		transformer.cfg.Logger.Sugar().Infof("JWT validation success for the issuer %s", jwtValidationInfoSuccess)
+		transformer.cfg.Logger.Sugar().Debugf("JWT validation success for the issuer %s", jwtValidationInfoSuccess)
 		return jwtValidationInfoSuccess
 	}
 	jwtAuthenticationDataFailure, exists := jwtAuthenticationData.FailedData[tokenIssuer.Issuer+"-"+tokenType+"-failed"]
 	if exists {
-		jwtValidationInfoFailure = &dto.JWTValidationInfo{Valid: false, ValidationCode: jwtAuthenticationDataFailure.Code, ValidationMessage: jwtAuthenticationDataFailure.Message}
+		jwtValidationDebugfailure = &dto.JWTValidationInfo{Valid: false, ValidationCode: jwtAuthenticationDataFailure.Code, ValidationMessage: jwtAuthenticationDataFailure.Message}
 	} else {
 		jwtAuthenticationDataFailure, exists := jwtAuthenticationData.FailedData["unknown-"+tokenType+"-failed"]
 		if exists {
-			jwtValidationInfoFailure = &dto.JWTValidationInfo{Valid: false, ValidationCode: jwtAuthenticationDataFailure.Code, ValidationMessage: jwtAuthenticationDataFailure.Message}
+			jwtValidationDebugfailure = &dto.JWTValidationInfo{Valid: false, ValidationCode: jwtAuthenticationDataFailure.Code, ValidationMessage: jwtAuthenticationDataFailure.Message}
 		}
 	}
-	if jwtValidationInfoFailure != nil {
-		return jwtValidationInfoFailure
+	if jwtValidationDebugfailure != nil {
+		return jwtValidationDebugfailure
 	}
 	return nil
 }
@@ -140,10 +140,10 @@ func (transformer *JWTTransformer) ExtractJWTValidationInfo(jwtToken string, org
 	if iss, ok := signedJWTInfo.Claims["iss"].(string); ok {
 		issuer = iss
 	}
-	transformer.cfg.Logger.Sugar().Infof("Extracted issuer from JWT claims: %s", issuer)
+	transformer.cfg.Logger.Sugar().Debugf("Extracted issuer from JWT claims: %s", issuer)
 
 	if issuer == "" {
-		transformer.cfg.Logger.Sugar().Infof("Issuer claim is missing in the JWT token")
+		transformer.cfg.Logger.Sugar().Debugf("Issuer claim is missing in the JWT token")
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
@@ -165,7 +165,7 @@ func (transformer *JWTTransformer) ExtractJWTValidationInfo(jwtToken string, org
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
-	transformer.cfg.Logger.Sugar().Infof("Successfully created JWT validation info for issuer: %s", issuer)
+	transformer.cfg.Logger.Sugar().Debugf("Successfully created JWT validation info for issuer: %s", issuer)
 	return jwtValidationInfo, nil
 }
 
@@ -212,12 +212,12 @@ func (transformer *JWTTransformer) ValidateJWTExpiry(claims jwt.MapClaims) error
 		}
 
 		if now >= expTime {
-			transformer.cfg.Logger.Sugar().Infof("JWT token expired: exp=%d, now=%d", expTime, now)
+			transformer.cfg.Logger.Sugar().Debugf("JWT token expired: exp=%d, now=%d", expTime, now)
 			return fmt.Errorf("token expired at %d, current time is %d", expTime, now)
 		}
-		transformer.cfg.Logger.Sugar().Infof("JWT token expiry validation passed: exp=%d, now=%d", expTime, now)
+		transformer.cfg.Logger.Sugar().Debugf("JWT token expiry validation passed: exp=%d, now=%d", expTime, now)
 	} else {
-		transformer.cfg.Logger.Sugar().Infof("JWT token missing exp claim - treating as non-expiring")
+		transformer.cfg.Logger.Sugar().Debugf("JWT token missing exp claim - treating as non-expiring")
 	}
 
 	return nil
@@ -276,7 +276,7 @@ func (transformer *JWTTransformer) validateSignature(token *jwt.Token, tokenIssu
 		keyID = kid
 	}
 
-	transformer.cfg.Logger.Sugar().Infof("Validating JWT signature for issuer: %s, keyID: %s", tokenIssuer.Issuer, keyID)
+	transformer.cfg.Logger.Sugar().Debugf("Validating JWT signature for issuer: %s, keyID: %s", tokenIssuer.Issuer, keyID)
 
 	// Check if we have certificate configuration
 	if tokenIssuer.Certificate == nil {
@@ -288,15 +288,15 @@ func (transformer *JWTTransformer) validateSignature(token *jwt.Token, tokenIssu
 		return fmt.Errorf("no signing method specified in token")
 	}
 
-	transformer.cfg.Logger.Sugar().Infof("certificate content data: %s", tokenIssuer.Certificate.Certificate)
+	transformer.cfg.Logger.Sugar().Debugf("certificate content data: %s", tokenIssuer.Certificate.Certificate)
 
 	// Check if we have JWKS URL configuration (remote JWKS scenario)
 	if tokenIssuer.Certificate.Jwks != nil && tokenIssuer.Certificate.Jwks.Url != "" {
-		transformer.cfg.Logger.Sugar().Infof("Using remote JWKS from URL for signature verification")
+		transformer.cfg.Logger.Sugar().Debugf("Using remote JWKS from URL for signature verification")
 		return transformer.verifyWithJWKS(token, keyID, tokenIssuer.Certificate.Jwks.Url, tokenIssuer.Certificate.Jwks.Tls, "")
 	} else if tokenIssuer.Certificate.Certificate != "" {
 		// Treat certificate field as local JWKS data
-		transformer.cfg.Logger.Sugar().Infof("Using local JWKS from certificate field for signature verification")
+		transformer.cfg.Logger.Sugar().Debugf("Using local JWKS from certificate field for signature verification")
 		return transformer.verifyWithJWKS(token, keyID, "", "", tokenIssuer.Certificate.GetCertificate())
 	}
 
@@ -324,11 +324,11 @@ func (transformer *JWTTransformer) verifyWithJWKS(token *jwt.Token, keyID, jwksU
 func (transformer *JWTTransformer) getJWKSData(jwksURL, tlsConfig, localJWKSData string) (*JWKSResponse, error) {
 	if jwksURL != "" {
 		// Remote JWKS scenario
-		transformer.cfg.Logger.Sugar().Infof("Fetching JWKS from remote URL: %s", jwksURL)
+		transformer.cfg.Logger.Sugar().Debugf("Fetching JWKS from remote URL: %s", jwksURL)
 		return transformer.fetchJWKS(jwksURL, tlsConfig)
 	} else if localJWKSData != "" {
 		// Local JWKS scenario
-		transformer.cfg.Logger.Sugar().Infof("Using local JWKS data")
+		transformer.cfg.Logger.Sugar().Debugf("Using local JWKS data")
 		var jwksResponse JWKSResponse
 		err := json.Unmarshal([]byte(localJWKSData), &jwksResponse)
 		if err != nil {
@@ -341,7 +341,7 @@ func (transformer *JWTTransformer) getJWKSData(jwksURL, tlsConfig, localJWKSData
 
 // verifyWithJWKSResponse verifies JWT signature using a JWKS response (common logic for both local and remote)
 func (transformer *JWTTransformer) verifyWithJWKSResponse(token *jwt.Token, jwksResponse *JWKSResponse, keyID string, isRemote bool) error {
-	transformer.cfg.Logger.Sugar().Infof("Verifying JWT signature with JWKS data, keyID: %s", keyID)
+	transformer.cfg.Logger.Sugar().Debugf("Verifying JWT signature with JWKS data, keyID: %s", keyID)
 
 	// Find the key by keyID
 	var targetJWK *JWK
@@ -387,8 +387,8 @@ func (transformer *JWTTransformer) verifyWithJWKSResponse(token *jwt.Token, jwks
 
 // fetchJWKS fetches JWKS from the given URL with optional TLS configuration
 func (transformer *JWTTransformer) fetchJWKS(jwksURL string, tlsConfig string) (*JWKSResponse, error) {
-	transformer.cfg.Logger.Sugar().Infof("Starting JWKS fetch from URL: %s", jwksURL)
-	transformer.cfg.Logger.Sugar().Infof("TLS config provided: %t (length: %d)", tlsConfig != "", len(tlsConfig))
+	transformer.cfg.Logger.Sugar().Debugf("Starting JWKS fetch from URL: %s", jwksURL)
+	transformer.cfg.Logger.Sugar().Debugf("TLS config provided: %t (length: %d)", tlsConfig != "", len(tlsConfig))
 
 	// Create HTTP client with optional TLS configuration
 	client := &http.Client{
@@ -414,25 +414,25 @@ func (transformer *JWTTransformer) fetchJWKS(jwksURL string, tlsConfig string) (
 			transformer.cfg.Logger.Sugar().Errorf("Failed to decode PEM certificate from tlsConfig")
 			return nil, fmt.Errorf("failed to decode PEM certificate from tlsConfig")
 		}
-		transformer.cfg.Logger.Sugar().Infof("PEM block decoded successfully. Type: %s", block.Type)
+		transformer.cfg.Logger.Sugar().Debugf("PEM block decoded successfully. Type: %s", block.Type)
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			transformer.cfg.Logger.Sugar().Errorf("Failed to parse certificate: %v", err)
 			return nil, fmt.Errorf("failed to parse certificate from tlsConfig: %w", err)
 		}
 
-		transformer.cfg.Logger.Sugar().Infof("Certificate parsed successfully. Subject: %s, Issuer: %s", cert.Subject, cert.Issuer)
+		transformer.cfg.Logger.Sugar().Debugf("Certificate parsed successfully. Subject: %s, Issuer: %s", cert.Subject, cert.Issuer)
 		// Add the certificate to the existing CA pool
 		baseTLSConfig.RootCAs.AddCert(cert)
-		transformer.cfg.Logger.Sugar().Infof("Added custom certificate to existing CA pool")
+		transformer.cfg.Logger.Sugar().Debugf("Added custom certificate to existing CA pool")
 	} else {
-		transformer.cfg.Logger.Sugar().Infof("No custom TLS certificate provided, using system CA pool only")
+		transformer.cfg.Logger.Sugar().Debugf("No custom TLS certificate provided, using system CA pool only")
 	}
 
 	transport.TLSClientConfig = baseTLSConfig
 	client.Transport = transport
 
-	transformer.cfg.Logger.Sugar().Infof("HTTP client configured with TLS settings. InsecureSkipVerify: %t", baseTLSConfig.InsecureSkipVerify)
+	transformer.cfg.Logger.Sugar().Debugf("HTTP client configured with TLS settings. InsecureSkipVerify: %t", baseTLSConfig.InsecureSkipVerify)
 	// Add special handling for known JWKS endpoints that may have certificate issues
 	_, urlParseErr := url.Parse(jwksURL)
 	if urlParseErr != nil {
@@ -440,7 +440,7 @@ func (transformer *JWTTransformer) fetchJWKS(jwksURL string, tlsConfig string) (
 		return nil, fmt.Errorf("failed to parse JWKS URL: %w", err)
 	}
 
-	transformer.cfg.Logger.Sugar().Infof("Making GET request to: %s", jwksURL)
+	transformer.cfg.Logger.Sugar().Debugf("Making GET request to: %s", jwksURL)
 	resp, err := client.Get(jwksURL)
 	if err != nil {
 		transformer.cfg.Logger.Sugar().Errorf("HTTP GET request failed: %v", err)
@@ -448,7 +448,7 @@ func (transformer *JWTTransformer) fetchJWKS(jwksURL string, tlsConfig string) (
 	}
 	defer resp.Body.Close()
 
-	transformer.cfg.Logger.Sugar().Infof("JWKS endpoint responded with status: %d", resp.StatusCode)
+	transformer.cfg.Logger.Sugar().Debugf("JWKS endpoint responded with status: %d", resp.StatusCode)
 
 	if resp.StatusCode != http.StatusOK {
 		transformer.cfg.Logger.Sugar().Errorf("JWKS endpoint returned non-200 status: %d", resp.StatusCode)
@@ -462,7 +462,7 @@ func (transformer *JWTTransformer) fetchJWKS(jwksURL string, tlsConfig string) (
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	transformer.cfg.Logger.Sugar().Infof("JWKS response body length: %d bytes", len(body))
+	transformer.cfg.Logger.Sugar().Debugf("JWKS response body length: %d bytes", len(body))
 	transformer.cfg.Logger.Sugar().Debugf("JWKS response (first 500 chars): %s", func() string {
 		if len(body) > 500 {
 			return string(body[:500]) + "..."
@@ -476,7 +476,7 @@ func (transformer *JWTTransformer) fetchJWKS(jwksURL string, tlsConfig string) (
 		transformer.cfg.Logger.Sugar().Errorf("Failed to unmarshal JWKS JSON: %v", err)
 		return nil, fmt.Errorf("failed to parse JWKS response: %w", err)
 	}
-	transformer.cfg.Logger.Sugar().Infof("Successfully fetched JWKS with %d keys", len(jwksResponse.Keys))
+	transformer.cfg.Logger.Sugar().Debugf("Successfully fetched JWKS with %d keys", len(jwksResponse.Keys))
 	return &jwksResponse, nil
 }
 
@@ -574,7 +574,7 @@ func (transformer *JWTTransformer) extractECDSAPublicKey(jwk *JWK) (*ecdsa.Publi
 
 // verifyRSASignature verifies RSA signatures
 func (transformer *JWTTransformer) verifyRSASignature(token *jwt.Token, rsaPublicKey *rsa.PublicKey) error {
-	transformer.cfg.Logger.Sugar().Infof("Verifying RSA signature with algorithm: %s", token.Method.Alg())
+	transformer.cfg.Logger.Sugar().Debugf("Verifying RSA signature with algorithm: %s", token.Method.Alg())
 
 	// Parse the token parts to get the signing string and signature
 	parts := strings.Split(token.Raw, ".")
@@ -612,13 +612,13 @@ func (transformer *JWTTransformer) verifyRSASignature(token *jwt.Token, rsaPubli
 		return fmt.Errorf("RSA signature verification failed: %w", err)
 	}
 
-	transformer.cfg.Logger.Sugar().Infof("RSA signature verification successful")
+	transformer.cfg.Logger.Sugar().Debugf("RSA signature verification successful")
 	return nil
 }
 
 // verifyECDSASignature verifies ECDSA signatures
 func (transformer *JWTTransformer) verifyECDSASignature(token *jwt.Token, ecdsaPublicKey *ecdsa.PublicKey) error {
-	transformer.cfg.Logger.Sugar().Infof("Verifying ECDSA signature with algorithm: %s", token.Method.Alg())
+	transformer.cfg.Logger.Sugar().Debugf("Verifying ECDSA signature with algorithm: %s", token.Method.Alg())
 
 	// Parse the token parts to get the signing string and signature
 	parts := strings.Split(token.Raw, ".")
@@ -655,6 +655,6 @@ func (transformer *JWTTransformer) verifyECDSASignature(token *jwt.Token, ecdsaP
 		return fmt.Errorf("ECDSA signature verification failed: %w", err)
 	}
 
-	transformer.cfg.Logger.Sugar().Infof("ECDSA signature verification successful")
+	transformer.cfg.Logger.Sugar().Debugf("ECDSA signature verification successful")
 	return nil
 }
