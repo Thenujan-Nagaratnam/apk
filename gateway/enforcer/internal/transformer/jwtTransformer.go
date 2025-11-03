@@ -123,8 +123,14 @@ func (transformer *JWTTransformer) GetTokenIssuerCount() int {
 
 // GetJWTIssuerByOrganizationAndIssuer returns the JWTIssuer for the given organization and issuer.
 func (transformer *JWTTransformer) GetJWTIssuerByOrganizationAndIssuer(organizationID string, issuer string) *subscription.JWTIssuer {
-	transformer.cfg.Logger.Sugar().Infof("Fetching JWT Issuer for organizationID: %s and issuer: %s", organizationID, issuer)
+	transformer.cfg.Logger.Sugar().Debugf("Fetching JWT Issuer for organizationID: %s and issuer: %s", organizationID, issuer)
 	return transformer.tokenissuerStore.GetJWTIssuerByOrganizationAndIssuer(organizationID, issuer)
+}
+
+// GetJWTIssuerByOrganizationAndIssuerAndEnvironment returns the JWTIssuer for the given organization, environment and issuer.
+func (transformer *JWTTransformer) GetJWTIssuerByOrganizationAndIssuerAndEnvironment(organizationID string, environment string, issuer string) *subscription.JWTIssuer {
+	transformer.cfg.Logger.Sugar().Debugf("Fetching JWT Issuer for organizationID: %s, environment: %s and issuer: %s", organizationID, environment, issuer)
+	return transformer.tokenissuerStore.GetJWTIssuerByOrganizationAndIssuerAndEnvironment(organizationID, environment, issuer)
 }
 
 // ExtractJWTValidationInfo parses a JWT token, validates it, and directly returns JWT validation info
@@ -218,7 +224,7 @@ func (transformer *JWTTransformer) ValidateJWTExpiry(claims jwt.MapClaims) error
 }
 
 // ParseSignedJWT parses a JWT token with signature verification and extracts claims, token identifier, and header information.
-func (transformer *JWTTransformer) ParseSignedJWT(jwtToken string, organizationID string) (*SignedJWTInfo, error) {
+func (transformer *JWTTransformer) ParseSignedJWT(jwtToken string, environment string, organizationID string) (*SignedJWTInfo, error) {
 	if jwtToken == "" {
 		return nil, fmt.Errorf("JWT token cannot be empty")
 	}
@@ -243,9 +249,9 @@ func (transformer *JWTTransformer) ParseSignedJWT(jwtToken string, organizationI
 	}
 
 	// Get the token issuer configuration for signature verification
-	tokenIssuer := transformer.GetJWTIssuerByOrganizationAndIssuer(organizationID, issuer)
+	tokenIssuer := transformer.GetJWTIssuerByOrganizationAndIssuerAndEnvironment(organizationID, environment, issuer)
 	if tokenIssuer == nil {
-		return nil, fmt.Errorf("no token issuer configuration found for issuer '%s' in organization '%s'", issuer, organizationID)
+		return nil, fmt.Errorf("no token issuer configuration found for issuer '%s' in organization '%s' and environment '%s'", issuer, organizationID, environment)
 	}
 
 	// Perform signature verification

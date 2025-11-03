@@ -64,6 +64,26 @@ func (s *JWTIssuerStore) GetJWTIssuerByOrganizationAndIssuer(organization, issue
 	return nil
 }
 
+// GetJWTIssuerByOrganizationAndIssuerAndEnvironment returns the JWTIssuer for the given organization, environment and issuer.
+// This method is thread-safe.
+func (s *JWTIssuerStore) GetJWTIssuerByOrganizationAndIssuerAndEnvironment(organization, environment, issuer string) *subscription.JWTIssuer {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if orgWiseJWTIssuers, ok := s.jwtIssuers[organization]; ok {
+		if jwtIssuer, ok := orgWiseJWTIssuers[issuer]; ok {
+			if len(jwtIssuer.Environments) == 0 || (len(jwtIssuer.Environments) == 1 && jwtIssuer.Environments[0] == "*") {
+				return jwtIssuer
+			}
+			for _, env := range jwtIssuer.Environments {
+				if env == environment {
+					return jwtIssuer
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // GetJWTIssuersByOrganization returns the JWTIssuers for the given organization.
 // This method is thread-safe.
 func (s *JWTIssuerStore) GetJWTIssuersByOrganization(organization string) map[string]*subscription.JWTIssuer {

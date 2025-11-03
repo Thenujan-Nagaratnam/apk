@@ -78,7 +78,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	}
 
 	// Parse the JWT token to extract claims and token info
-	signedJWTInfo, err := authenticator.jwtTransformer.ParseSignedJWT(jwtToken, rch.MatchedAPI.OrganizationID)
+	signedJWTInfo, err := authenticator.jwtTransformer.ParseSignedJWT(jwtToken, rch.MatchedAPI.Environment, rch.MatchedAPI.OrganizationID)
 	if err != nil {
 		authenticator.cfg.Logger.Sugar().Infof("Error parsing JWT token: %v", err)
 		return AuthenticationResponse{
@@ -150,9 +150,11 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 }
 
 func getOAuth2Header(rch *requestconfig.Holder) string {
-	for _, header := range rch.Request.GetRequestHeaders().GetHeaders().Headers {
-		if header.Key == rch.MatchedResource.AuthenticationConfig.Oauth2AuthenticationConfig.Header {
-			return string(header.RawValue)
+	if rch != nil && rch.Request != nil && rch.Request.GetRequestHeaders() != nil && rch.Request.GetRequestHeaders().GetHeaders() != nil && rch.Request.GetRequestHeaders().GetHeaders().Headers != nil {
+		for _, header := range rch.Request.GetRequestHeaders().GetHeaders().Headers {
+			if header.Key == rch.MatchedResource.AuthenticationConfig.Oauth2AuthenticationConfig.Header {
+				return string(header.RawValue)
+			}
 		}
 	}
 	return ""
