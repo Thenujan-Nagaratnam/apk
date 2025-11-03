@@ -43,206 +43,77 @@ wso2:
       nodePublishSecretRef: ""
       secrets:
         apkServerKey:
-          azure:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         ratelimiterRedisCredentials:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         adapterKey:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         adapterCert:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         adapterCaCert:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         enforcerKey:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         enforcerCert:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         enforcerCaCert:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         routerKey:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         routerCert:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         routerCaCert:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         ratelimiterKey:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         ratelimiterCert:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         ratelimiterCaCert:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         commonControllerKey:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         commonControllerCert:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         commonControllerCaCert:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         systemApiListenerKey:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         systemApiListenerCert:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         enforcerJwksKey:
-          azure:
-            secretName: ""
-            secretVersion: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         enforcerJwksCert:
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         enforcerJwksCaCert:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         tracingCaCert:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
         tracingCert:
-          azure:
-            secretName: ""
-            version: ""
-          vault:
-            key: ""
-            path: ""
-          aws:
-            secretName: ""
-            version: ""
+          secretName: ""
+          version: ""
     helmHooks:
       webhooksCleanupEnabled: true
       webhooksCleanup:
