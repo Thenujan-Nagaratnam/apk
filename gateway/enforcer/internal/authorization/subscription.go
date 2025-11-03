@@ -23,7 +23,7 @@ func ValidateSubscription(rch *requestconfig.Holder, subAppDataStore *datastore.
 	if rch.MatchedAPI.SubscriptionValidation {
 		cfg.Logger.Sugar().Debugf("Subscription validation enabled for the API %+v", api)
 		cfg.Logger.Sugar().Debugf("Authentication Type %+v", rch.AuthenticatedAuthenticationType)
-		if rch.AuthenticatedAuthenticationType == authenticator.Oauth2AuthType {
+		if rch.AuthenticatedAuthenticationType == authenticator.OAuth2AuthType {
 			clientID := rch.JWTValidationInfo.ClientID
 			if clientID != "" {
 				appID := getAppIDUsingConsumerKey(clientID, subAppDataStore, api, "OAuth2")

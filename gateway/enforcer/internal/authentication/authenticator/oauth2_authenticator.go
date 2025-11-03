@@ -23,8 +23,8 @@ func NewOAuth2Authenticator(jwtTransformer *transformer.JWTTransformer, revokedJ
 }
 
 const (
-	// Oauth2AuthType is the Oauth2 authentication type.
-	Oauth2AuthType = "oauth2"
+	// OAuth2AuthType is the Oauth2 authentication type.
+	OAuth2AuthType = "oauth2"
 )
 
 // Authenticate performs the authentication.
@@ -104,7 +104,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	}
 
 	// Parse and validate the JWT token directly
-	jwtValidationInfo, err := authenticator.jwtTransformer.ExtractJWTValidationInfo(jwtToken, rch.MatchedAPI.OrganizationID, signedJWTInfo, Oauth2AuthType)
+	jwtValidationInfo, err := authenticator.jwtTransformer.ExtractJWTValidationInfo(jwtToken, rch.MatchedAPI.OrganizationID, signedJWTInfo, OAuth2AuthType)
 	if err != nil || jwtValidationInfo == nil {
 		authenticator.cfg.Logger.Sugar().Infof("Error parsing and validating JWT token: %v", err)
 		return AuthenticationResponse{
@@ -130,7 +130,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 
 	if jwtValidationInfo.Valid {
 		rch.JWTValidationInfo = jwtValidationInfo
-		rch.AuthenticatedAuthenticationType = Oauth2AuthType
+		rch.AuthenticatedAuthenticationType = OAuth2AuthType
 		return AuthenticationResponse{
 			Authenticated:               true,
 			MandatoryAuthentication:     authenticator.mandatory,

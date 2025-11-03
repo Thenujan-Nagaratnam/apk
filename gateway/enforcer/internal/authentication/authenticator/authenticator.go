@@ -44,7 +44,7 @@ func (authenticator *Authenticator) Authenticate(rch *requestconfig.Holder) *dto
 				authenticator.cfg.Logger.Sugar().Infof("OAuth2 authentication response %+v", authenticationResponse)
 			} else if authenticationType == "JWT" {
 				authenticator.cfg.Logger.Sugar().Debugf("JWT authentication is enabled for the API")
-				JWTAuthenticator := NewJWTAuthenticator(authenticator.jwtTransformer, authenticator.revokedJTIStore, mandatory)
+				JWTAuthenticator := NewJWTAuthenticator(authenticator.jwtTransformer, authenticator.revokedJTIStore, mandatory, authenticator.cfg)
 				authenticationResponse = JWTAuthenticator.Authenticate(rch)
 				authenticator.cfg.Logger.Sugar().Debugf("JWT authentication response %+v", authenticationResponse)
 			} else if authenticationType == "APIKey" {
