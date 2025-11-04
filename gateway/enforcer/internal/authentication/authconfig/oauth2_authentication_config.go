@@ -14,11 +14,11 @@
  *  limitations under the License.
  *
  */
- 
+
 package authconfig
 
-// Oauth2AuthenticationConfig represents the configuration for OAuth2 authentication
-type Oauth2AuthenticationConfig struct {
+// OAuth2AuthenticationConfig represents the configuration for OAuth2 authentication
+type OAuth2AuthenticationConfig struct {
 	Header              string `json:"header"`              // The header used for OAuth2
 	SendTokenToUpstream bool   `json:"sendTokenToUpstream"` // Whether to send the token to upstream
 }

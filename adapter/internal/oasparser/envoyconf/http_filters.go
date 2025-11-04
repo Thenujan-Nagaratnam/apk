@@ -228,7 +228,7 @@ func getRateLimitFilter() *hcmv3.HttpFilter {
 	return &rlFilter
 }
 
-// getExtProcessHTTPFilter gets ExtAauthz http filter.
+// getExtProcessHTTPFilter gets ExtAuthz http filter.
 func getExtProcessHTTPFilter() *hcmv3.HttpFilter {
 	conf := config.ReadConfigs()
 	sendReqHeadersToEnforcer := ext_process.ProcessingMode_SEND
@@ -257,7 +257,7 @@ func getExtProcessHTTPFilter() *hcmv3.HttpFilter {
 		},
 		MetadataOptions: &ext_process.MetadataOptions{
 			ForwardingNamespaces: &ext_process.MetadataOptions_MetadataNamespaces{
-				Untyped: []string{"envoy.filters.http.ext_authz", "envoy.filters.http.ext_proc", "envoy.filters.http.jwt_authn"},
+				Untyped: []string{"envoy.filters.http.ext_authz", "envoy.filters.http.ext_proc"},
 			},
 			ReceivingNamespaces: &ext_process.MetadataOptions_MetadataNamespaces{
 				Untyped: []string{"envoy.filters.http.ext_proc"},

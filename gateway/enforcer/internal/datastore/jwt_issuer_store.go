@@ -38,15 +38,15 @@ func NewJWTIssuerStore() *JWTIssuerStore {
 
 // AddJWTIssuers adds a list of config to the store.
 // This method is thread-safe.
-func (s *JWTIssuerStore) AddJWTIssuers(apis []*subscription.JWTIssuer) {
+func (s *JWTIssuerStore) AddJWTIssuers(tokenIssuers []*subscription.JWTIssuer) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	orgWizeJWTIssuers := make(map[string]map[string]*subscription.JWTIssuer)
-	for _, api := range apis {
-		if _, ok := orgWizeJWTIssuers[api.Organization]; !ok {
-			orgWizeJWTIssuers[api.Organization] = make(map[string]*subscription.JWTIssuer)
+	for _, tokenIssuer := range tokenIssuers {
+		if _, ok := orgWizeJWTIssuers[tokenIssuer.Organization]; !ok {
+			orgWizeJWTIssuers[tokenIssuer.Organization] = make(map[string]*subscription.JWTIssuer)
 		}
-		orgWizeJWTIssuers[api.Organization][api.Issuer] = api
+		orgWizeJWTIssuers[tokenIssuer.Organization][tokenIssuer.Issuer] = tokenIssuer
 	}
 	s.jwtIssuers = orgWizeJWTIssuers
 }
@@ -64,9 +64,29 @@ func (s *JWTIssuerStore) GetJWTIssuerByOrganizationAndIssuer(organization, issue
 	return nil
 }
 
-// GetJWTISsuersByOrganization returns the JWTIssuers for the given organization.
+// GetJWTIssuerByOrganizationAndIssuerAndEnvironment returns the JWTIssuer for the given organization, environment and issuer.
 // This method is thread-safe.
-func (s *JWTIssuerStore) GetJWTISsuersByOrganization(organization string) map[string]*subscription.JWTIssuer {
+func (s *JWTIssuerStore) GetJWTIssuerByOrganizationAndIssuerAndEnvironment(organization, environment, issuer string) *subscription.JWTIssuer {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if orgWiseJWTIssuers, ok := s.jwtIssuers[organization]; ok {
+		if jwtIssuer, ok := orgWiseJWTIssuers[issuer]; ok {
+			if len(jwtIssuer.Environments) == 0 || (len(jwtIssuer.Environments) == 1 && jwtIssuer.Environments[0] == "*") {
+				return jwtIssuer
+			}
+			for _, env := range jwtIssuer.Environments {
+				if env == environment {
+					return jwtIssuer
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// GetJWTIssuersByOrganization returns the JWTIssuers for the given organization.
+// This method is thread-safe.
+func (s *JWTIssuerStore) GetJWTIssuersByOrganization(organization string) map[string]*subscription.JWTIssuer {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if orgWiseJWTIssuers, ok := s.jwtIssuers[organization]; ok {

@@ -33,7 +33,7 @@ func buildResource(operation *api.Operation, path string, endpointCluster *api.E
 	}
 	if operation.ApiAuthentication != nil {
 		if operation.ApiAuthentication.GetOauth2() != nil {
-			authConfig.Oauth2AuthenticationConfig = &auth.Oauth2AuthenticationConfig{
+			authConfig.Oauth2AuthenticationConfig = &auth.OAuth2AuthenticationConfig{
 				Header:              operation.ApiAuthentication.GetOauth2().GetHeader(),
 				SendTokenToUpstream: operation.ApiAuthentication.GetOauth2().GetSendTokenToUpstream(),
 			}

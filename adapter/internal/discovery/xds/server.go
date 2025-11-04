@@ -35,7 +35,6 @@ import (
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	listenerv3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	routev3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
-	jwt "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/jwt_authn/v3"
 	hcmv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	envoy_cachev3 "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
@@ -234,7 +233,7 @@ func UpdateXdsCacheOnAPIChange(labels map[string]struct{}) bool {
 	revisionStatus := false
 	// TODO: (VirajSalaka) check possible optimizations, Since the number of labels are low by design it should not be an issue
 	for newLabel := range labels {
-		listeners, clusters, routes, endpoints, apis := GenerateEnvoyResoucesForGateway(newLabel)
+		listeners, clusters, routes, endpoints, apis := GenerateEnvoyResourcesForGateway(newLabel)
 		UpdateEnforcerApis(newLabel, apis, "")
 		if !config.ReadConfigs().Adapter.EnableGatewayClassController {
 			success := UpdateXdsCacheWithLock(newLabel, endpoints, clusters, routes, listeners)
@@ -257,9 +256,9 @@ func SetReady() {
 	isReady = true
 }
 
-// GenerateEnvoyResoucesForGateway generates envoy resources for a given gateway
+// GenerateEnvoyResourcesForGateway generates envoy resources for a given gateway
 // This method will list out all APIs mapped to the label. and generate envoy resources for all of these APIs.
-func GenerateEnvoyResoucesForGateway(gatewayName string) ([]types.Resource,
+func GenerateEnvoyResourcesForGateway(gatewayName string) ([]types.Resource,
 	[]types.Resource, []types.Resource, []types.Resource, []types.Resource) {
 	conf := config.ReadConfigs()
 	var clusterArray []*clusterv3.Cluster
@@ -272,145 +271,11 @@ func GenerateEnvoyResoucesForGateway(gatewayName string) ([]types.Resource,
 	if !gwFound {
 		return nil, nil, nil, nil, nil
 	}
-	orgwizeJWTProviders := envoyGatewayConfig.jwtProviders
-	jwtRequirementMap := make(map[string]*jwt.JwtRequirement)
-	jwtProviderMap := make(map[string]*jwt.JwtProvider)
 	for organizationID, entityMap := range orgAPIMap {
 		for apiKey, envoyInternalAPI := range entityMap {
 			if _, exists := envoyInternalAPI.envoyLabels[gatewayName]; !exists {
 				// do nothing if the gateway is not found in the envoyInternalAPI
 				continue
-			}
-			removeJWTRequirements := false
-			if !envoyInternalAPI.adapterInternalAPI.GetDisableAuthentications() {
-				var jwtRequirements []*jwt.JwtRequirement
-				var authorizationHeader *string
-				var sendTokenToUpstream *bool
-				var apiKeyHeader *string
-				var apiKeyQueryParam *string
-				sendApikeyToUpstream := false
-				var jwtAuthenticationHeader *string
-				var jwtAuthenticationAudiences []string
-				var jwtAuthenticationSendTokenToUpstream *bool
-				if envoyInternalAPI.adapterInternalAPI != nil && envoyInternalAPI.adapterInternalAPI.GetResources() != nil {
-					for _, resource := range envoyInternalAPI.adapterInternalAPI.GetResources() {
-						if resource.GetMethod() != nil {
-							for _, method := range resource.GetMethod() {
-								if method.GetAuthentication() != nil {
-									if !method.GetAuthentication().Disabled {
-										if method.GetAuthentication().Oauth2 != nil {
-											authorizationHeader = &method.GetAuthentication().Oauth2.Header
-											sendTokenToUpstream = &method.GetAuthentication().Oauth2.SendTokenToUpstream
-										}
-										if method.GetAuthentication().APIKey != nil && len(method.GetAuthentication().APIKey) > 0 {
-											for _, apiKeyConfig := range method.GetAuthentication().APIKey {
-												if apiKeyConfig.In == "Header" {
-													apiKeyHeader = &apiKeyConfig.Name
-													sendApikeyToUpstream = sendApikeyToUpstream || apiKeyConfig.SendTokenToUpstream
-												} else if apiKeyConfig.In == "Query" {
-													apiKeyQueryParam = &apiKeyConfig.Name
-													sendApikeyToUpstream = sendApikeyToUpstream || apiKeyConfig.SendTokenToUpstream
-												}
-											}
-										}
-										if method.GetAuthentication().JWT != nil {
-											jwtAuthenticationHeader = &method.GetAuthentication().JWT.Header
-											jwtAuthenticationAudiences = method.GetAuthentication().JWT.Audience
-											jwtAuthenticationSendTokenToUpstream = &method.GetAuthentication().JWT.SendTokenToUpstream
-										}
-										break
-									}
-								}
-							}
-						}
-					}
-				}
-				if authorizationHeader != nil || sendTokenToUpstream != nil {
-					jwtProviders, jwtclusters, jwtaddress, jwtRequirement, err := oasParser.GenerateAPILevelJWTPRoviders(orgwizeJWTProviders[organizationID], envoyInternalAPI.adapterInternalAPI, authorizationHeader, sendTokenToUpstream)
-					if err != nil {
-						logger.LoggerXds.ErrorC(logging.PrintError(logging.Error2301, logging.MAJOR, "Error generating JWT Providers: %v", err))
-					}
-					clusterArray = append(clusterArray, jwtclusters...)
-					endpointArray = append(endpointArray, jwtaddress...)
-					for key, value := range jwtProviders {
-						jwtProviderMap[key] = value
-					}
-					if jwtRequirement != nil {
-						jwtRequirements = append(jwtRequirements, jwtRequirement...)
-					}
-				} else {
-					jwtRequirement := oasParser.GetJWTRequirements(envoyInternalAPI.adapterInternalAPI, orgwizeJWTProviders[organizationID])
-					if jwtRequirement != nil {
-						jwtRequirements = append(jwtRequirements, jwtRequirement...)
-					}
-				}
-				logger.LoggerAPKOperator.Debugf("API Key header is enabled for the API: %v", apiKeyHeader)
-				logger.LoggerAPKOperator.Debugf("API Key query param is enabled for the API: %v", apiKeyQueryParam)
-				if conf.Enforcer.Security.APIkey.Enabled && (apiKeyHeader != nil || apiKeyQueryParam != nil) {
-					apiKeyProviders, apiKeyClusters, apiKeyAddress, apiKeyRequirements, err := oasParser.GenerateAPIKeyProviders(envoyInternalAPI.adapterInternalAPI, apiKeyHeader, apiKeyQueryParam, &sendApikeyToUpstream)
-					if err != nil {
-						logger.LoggerXds.ErrorC(logging.PrintError(logging.Error2302, logging.MAJOR, "Error generating API Key Providers: %v", err))
-					}
-					logger.LoggerAPKOperator.Debugf("API Key Providers: %+v", apiKeyProviders)
-					logger.LoggerAPKOperator.Debugf("API Key Clusters: %+v", apiKeyClusters)
-					clusterArray = append(clusterArray, apiKeyClusters...)
-					endpointArray = append(endpointArray, apiKeyAddress...)
-					for key, value := range apiKeyProviders {
-						jwtProviderMap[key] = value
-					}
-					if apiKeyRequirements != nil {
-						jwtRequirements = append(jwtRequirements, apiKeyRequirements...)
-					}
-				}
-				if jwtAuthenticationHeader != nil {
-					jwtProviders, jwtclusters, jwtaddress, jwtRequirement, err := oasParser.GenerateJWTProvidersForJWTAuthentications(orgwizeJWTProviders[organizationID], envoyInternalAPI.adapterInternalAPI, jwtAuthenticationHeader, jwtAuthenticationSendTokenToUpstream, jwtAuthenticationAudiences)
-					if err != nil {
-						logger.LoggerXds.ErrorC(logging.PrintError(logging.Error2302, logging.MAJOR, "Error generating JWT Providers: %v", err))
-					}
-					clusterArray = append(clusterArray, jwtclusters...)
-					endpointArray = append(endpointArray, jwtaddress...)
-					for key, value := range jwtProviders {
-						jwtProviderMap[key] = value
-					}
-					if jwtRequirement != nil {
-						jwtRequirements = append(jwtRequirements, jwtRequirement...)
-					}
-				}
-				logger.LoggerAPKOperator.Debugf("JWT Requirements for API %+v is  %+v", envoyInternalAPI.adapterInternalAPI.UUID, jwtRequirements)
-				if len(jwtRequirements) > 0 {
-					if !conf.Enforcer.EnforcerEnabled {
-						if len(jwtRequirements) == 1 {
-							jwtRequirementMap[envoyInternalAPI.adapterInternalAPI.UUID] = jwtRequirements[0]
-						} else {
-							jwtRequirementMap[envoyInternalAPI.adapterInternalAPI.UUID] = &jwt.JwtRequirement{
-								RequiresType: &jwt.JwtRequirement_RequiresAny{
-									RequiresAny: &jwt.JwtRequirementOrList{
-										Requirements: jwtRequirements,
-									},
-								},
-							}
-						}
-					} else {
-						jwtRequirementMap[envoyInternalAPI.adapterInternalAPI.UUID] = &jwt.JwtRequirement{
-							RequiresType: &jwt.JwtRequirement_RequiresAny{
-								RequiresAny: &jwt.JwtRequirementOrList{
-									Requirements: append(jwtRequirements, &jwt.JwtRequirement{
-										RequiresType: &jwt.JwtRequirement_AllowMissingOrFailed{},
-									}),
-								},
-							},
-						}
-					}
-				} else {
-					logger.LoggerAPKOperator.Debugf("No JWT Requirements for API %+v is  %+v", envoyInternalAPI.adapterInternalAPI.UUID, jwtRequirements)
-					removeJWTRequirements = true
-				}
-			}
-			if removeJWTRequirements {
-				logger.LoggerAPKOperator.Debugf("Removing JWT Requirements for API %+v", envoyInternalAPI.adapterInternalAPI.UUID)
-				for _, route := range envoyInternalAPI.routes {
-					delete(route.TypedPerFilterConfig, envoyconf.EnvoyJWT)
-				}
 			}
 			vhost, err := ExtractVhostFromAPIIdentifier(apiKey)
 			if err != nil {
@@ -446,17 +311,6 @@ func GenerateEnvoyResoucesForGateway(gatewayName string) ([]types.Resource,
 		readynessEndpoint := envoyconf.CreateReadyEndpoint()
 		vhostToRouteArrayMap[systemHost] = append(vhostToRouteArrayMap[systemHost], readynessEndpoint)
 	}
-	jwtProviders, jwtclusters, jwtaddress, err := oasParser.GenerateJWTPRoviderv3(orgwizeJWTProviders)
-	if err != nil {
-		logger.LoggerXds.ErrorC(logging.PrintError(logging.Error1100, logging.MAJOR, "Error generating JWT Providers: %v", err))
-	}
-	for key, value := range jwtProviders {
-		jwtProviderMap[key] = value
-	}
-
-	clusterArray = append(clusterArray, jwtclusters...)
-	endpointArray = append(endpointArray, jwtaddress...)
-	jwtFilter, err := oasParser.GetJWTFilter(jwtRequirementMap, jwtProviderMap)
 	listeners := envoyGatewayConfig.listeners
 	if !conf.Adapter.EnableGatewayClassController && len(listeners) < 1 {
 		return nil, nil, nil, nil, nil
@@ -483,7 +337,6 @@ func GenerateEnvoyResoucesForGateway(gatewayName string) ([]types.Resource,
 					return false
 				})
 			if found {
-				patchListenerWithJWTFilter(listener, jwtFilter)
 				// Prepare the route config name based on the gateway listener section name.
 				routeConfigName := common.GetEnvoyRouteConfigName(listener.Name, string(listenerSection.Name))
 				routesConfig := oasParser.GetRouteConfigs(map[string][]*routev3.Route{vhost: routes}, routeConfigName, envoyGatewayConfig.customRateLimitPolicies, vHostToSubscriptionBasedAIRLMap, vHostToSubscriptionBasedRLMap)
@@ -666,7 +519,6 @@ func marshalJWTIssuerList(jwtIssuerMapping map[string]*v1alpha1.ResolvedJWTIssue
 		jwtIssuer.Environments = internalJWTIssuer.Environments
 		loggers.LoggerAPKOperator.Debugf("JWT Issuer: %+v", jwtIssuer)
 		jwtIssuers = append(jwtIssuers, jwtIssuer)
-
 	}
 	jwtIssuersJSON, _ := json.Marshal(jwtIssuers)
 	loggers.LoggerAPKOperator.Debugf("JwtIssuer Data: %v", string(jwtIssuersJSON))

@@ -40,7 +40,6 @@ import (
 	cors_filter_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/cors/v3"
 	extAuthService "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_authz/v3"
 	extProcessorv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_proc/v3"
-	jwt_authnv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/jwt_authn/v3"
 	lua "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/lua/v3"
 	ratelimitv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ratelimit/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
@@ -1074,16 +1073,11 @@ func createRoutes(params *routeCreateParams) (routes []*routev3.Route, err error
 		TypeUrl: luaPerRouteName,
 		Value:   data,
 	}
-	jwtPerFilterConfig := jwt_authnv3.PerRouteConfig{
-		RequirementSpecifier: &jwt_authnv3.PerRouteConfig_RequirementName{RequirementName: params.apiID},
-	}
 
 	corsFilter, _ := anypb.New(corsPolicy)
-	jwtFilter, _ := anypb.New(&jwtPerFilterConfig)
 	perRouteFilterConfigs := map[string]*any.Any{
 
 		// wellknown.HTTPExternalAuthorization: extAuthzFilter,
-		EnvoyJWT:       jwtFilter,
 		LuaLocal:       luaFilter,
 		wellknown.CORS: corsFilter,
 	}
