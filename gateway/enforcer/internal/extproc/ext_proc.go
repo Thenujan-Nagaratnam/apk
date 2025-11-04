@@ -207,7 +207,6 @@ func (s *ExternalProcessingServer) Process(srv envoy_service_proc_v3.ExternalPro
 		switch v := req.Request.(type) {
 		case *envoy_service_proc_v3.ProcessingRequest_RequestHeaders:
 			s.cfg.Logger.Sugar().Debug("Request Headers Flow")
-			s.cfg.Logger.Sugar().Debugf("External metadata attributes %v", req.GetAttributes())
 			attributes, err := extractExternalProcessingXDSRouteMetadataAttributes(req.GetAttributes())
 			requestConfigHolder.ExternalProcessingEnvoyAttributes = attributes
 			persistedRequest = req
@@ -265,8 +264,6 @@ func (s *ExternalProcessingServer) Process(srv envoy_service_proc_v3.ExternalPro
 				ResponseBodyMode:   v31.ProcessingMode_BUFFERED,
 			}
 			apiKey := util.PrepareAPIKey(attributes.VHost, attributes.BasePath, attributes.APIVersion)
-			s.cfg.Logger.Sugar().Debugf("Request headers %v", req.GetRequestHeaders().GetHeaders().Headers)
-
 			if strings.TrimSpace(attributes.EndpointBasepath) == "" {
 				for _, header := range req.GetRequestHeaders().GetHeaders().Headers {
 					if header.Key == ":path" {

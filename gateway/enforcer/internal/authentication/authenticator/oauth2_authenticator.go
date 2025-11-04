@@ -30,7 +30,7 @@ const (
 // Authenticate performs the authentication.
 func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder) AuthenticationResponse {
 	if rch == nil {
-		authenticator.cfg.Logger.Sugar().Infof("Request config holder is nil")
+		authenticator.cfg.Logger.Sugar().Debugf("Request config holder is nil")
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -43,7 +43,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Extract OAuth2 token from request headers
 	authHeader := getOAuth2Header(rch)
 	if authHeader == "" {
-		authenticator.cfg.Logger.Sugar().Infof("Authorization header is missing")
+		authenticator.cfg.Logger.Sugar().Debugf("Authorization header is missing")
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -56,7 +56,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Extract Bearer token from the authorization header
 	jwtToken, found := extractBearerToken(authHeader)
 	if !found || jwtToken == "" {
-		authenticator.cfg.Logger.Sugar().Infof("Bearer token is missing in the authorization header")
+		authenticator.cfg.Logger.Sugar().Debugf("Bearer token is missing in the authorization header")
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -67,7 +67,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	}
 
 	if jwtToken == "" {
-		authenticator.cfg.Logger.Sugar().Infof("JWT token cannot be empty")
+		authenticator.cfg.Logger.Sugar().Debugf("JWT token cannot be empty")
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -80,7 +80,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Parse the JWT token to extract claims and token info
 	signedJWTInfo, err := authenticator.jwtTransformer.ParseSignedJWT(jwtToken, rch.MatchedAPI.Environment, rch.MatchedAPI.OrganizationID)
 	if err != nil {
-		authenticator.cfg.Logger.Sugar().Infof("Error parsing JWT token: %v", err)
+		authenticator.cfg.Logger.Sugar().Debugf("Error parsing JWT token: %v", err)
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -93,7 +93,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Check JWT expiry
 	err = authenticator.jwtTransformer.ValidateJWTExpiry(signedJWTInfo.Claims)
 	if err != nil {
-		authenticator.cfg.Logger.Sugar().Infof("JWT token expired or invalid timing: %v", err)
+		authenticator.cfg.Logger.Sugar().Debugf("JWT token expired or invalid timing: %v", err)
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -106,7 +106,7 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	// Parse and validate the JWT token directly
 	jwtValidationInfo, err := authenticator.jwtTransformer.ExtractJWTValidationInfo(jwtToken, rch.MatchedAPI.OrganizationID, signedJWTInfo, OAuth2AuthType)
 	if err != nil || jwtValidationInfo == nil {
-		authenticator.cfg.Logger.Sugar().Infof("Error parsing and validating JWT token: %v", err)
+		authenticator.cfg.Logger.Sugar().Debugf("Error parsing and validating JWT token: %v", err)
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
@@ -117,14 +117,14 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 	}
 
 	// Check for revoked tokens and validate
-	authenticator.cfg.Logger.Sugar().Infof("JWT validation info: %+v", jwtValidationInfo)
+	authenticator.cfg.Logger.Sugar().Debugf("JWT validation info: %+v", jwtValidationInfo)
 	if authenticator.revokedJTIStore != nil && authenticator.revokedJTIStore.IsJTIRevoked(jwtValidationInfo.JTI) {
 		return AuthenticationResponse{
 			Authenticated:               false,
 			MandatoryAuthentication:     authenticator.mandatory,
 			ErrorCode:                   ExpiredToken,
 			ErrorMessage:                ExpiredTokenMessage,
-			ContinueToNextAuthenticator: !authenticator.mandatory,
+			ContinueToNextAuthenticator: false,
 		}
 	}
 
@@ -136,14 +136,14 @@ func (authenticator *OAuth2Authenticator) Authenticate(rch *requestconfig.Holder
 			MandatoryAuthentication:     authenticator.mandatory,
 			ErrorCode:                   InvalidCredentials,
 			ErrorMessage:                InvalidCredentialsMessage,
-			ContinueToNextAuthenticator: !authenticator.mandatory,
+			ContinueToNextAuthenticator: false,
 		}
 	}
 
 	return AuthenticationResponse{
 		Authenticated:               false,
 		MandatoryAuthentication:     authenticator.mandatory,
-		ContinueToNextAuthenticator: !authenticator.mandatory,
+		ContinueToNextAuthenticator: false,
 		ErrorCode:                   InvalidCredentials,
 		ErrorMessage:                InvalidCredentialsMessage,
 	}
