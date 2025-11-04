@@ -42,7 +42,7 @@ type AuthenticationSuccessData struct {
 	Claims map[string]interface{} `json:"claims"`
 }
 
-// AuthenticationFailureData represents the status of the JWT authentication filyrt.
+// AuthenticationFailureData represents the status of the JWT authentication filter.
 type AuthenticationFailureData struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`

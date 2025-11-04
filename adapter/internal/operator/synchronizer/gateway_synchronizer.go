@@ -114,7 +114,7 @@ func AddOrUpdateGateway(gatewayState GatewayState, state string) (string, error)
 	}
 	loggers.LoggerAPKOperator.Debugf("Before generate JWT Provider gatewayStateData TokenIssuers: %v", gatewayState.GatewayStateData.TokenIssuers)
 	xds.GenerateJWTProviders(gateway.Name, gatewayState.GatewayStateData.TokenIssuers)
-	listeners, clusters, routes, endpoints, apis := xds.GenerateEnvoyResoucesForGateway(gateway.Name)
+	listeners, clusters, routes, endpoints, apis := xds.GenerateEnvoyResourcesForGateway(gateway.Name)
 	loggers.LoggerAPKOperator.Debugf("listeners: %v", listeners)
 	loggers.LoggerAPKOperator.Debugf("clusters: %v", clusters)
 	loggers.LoggerAPKOperator.Debugf("routes: %v", routes)

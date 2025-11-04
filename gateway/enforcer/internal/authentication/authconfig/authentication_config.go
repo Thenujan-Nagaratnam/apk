@@ -14,13 +14,13 @@
  *  limitations under the License.
  *
  */
- 
+
 package authconfig
 
 // AuthenticationConfig represents the configuration for authentication
 type AuthenticationConfig struct {
-	JWTAuthenticationConfig     *JWTAuthenticationConfig     `json:"jwtAuthenticationConfig"`     // JWT Authentication configuration
+	JWTAuthenticationConfig     *JWTAuthenticationConfig      `json:"jwtAuthenticationConfig"`     // JWT Authentication configuration
 	APIKeyAuthenticationConfigs []*APIKeyAuthenticationConfig `json:"apiKeyAuthenticationConfigs"` // List of API key authentication configurations
-	Oauth2AuthenticationConfig  *Oauth2AuthenticationConfig  `json:"oauth2AuthenticationConfig"`  // OAuth2 authentication configuration
-	Disabled                    bool                         `json:"disabled"`                    // Whether authentication is disabled
+	Oauth2AuthenticationConfig  *OAuth2AuthenticationConfig   `json:"oauth2AuthenticationConfig"`  // OAuth2 authentication configuration
+	Disabled                    bool                          `json:"disabled"`                    // Whether authentication is disabled
 }

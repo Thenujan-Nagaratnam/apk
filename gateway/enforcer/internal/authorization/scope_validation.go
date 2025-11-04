@@ -30,7 +30,7 @@ import (
 // ValidateScopes validates the scopes of the user against the required scopes.
 func ValidateScopes(rch *requestconfig.Holder, subAppDataStore *datastore.SubscriptionApplicationDataStore, cfg *config.Server) *dto.ImmediateResponse {
 	requiredScopes := rch.MatchedResource.Scopes
-	if rch.AuthenticatedAuthenticationType == authenticator.Oauth2AuthType {
+	if rch.AuthenticatedAuthenticationType == authenticator.OAuth2AuthType {
 		scopes := rch.JWTValidationInfo.Scopes
 		if len(requiredScopes) == 0 {
 			return nil
