@@ -380,6 +380,7 @@ wso2:
 #              level: DEBUG
             env:
               TOKEN_REVOCATION_ENABLED: "true" 
+              # XDS_MAX_MSG_SIZE: "41943040"
 #            configs:
 #              apiKey:
 #                enabled: true
