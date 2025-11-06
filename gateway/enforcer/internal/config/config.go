@@ -42,7 +42,7 @@ type Server struct {
 	CommonControllerHostname         string `envconfig:"COMMON_CONTROLLER_HOST_NAME" default:"common-controller"`
 	CommonControllerXdsPort          string `envconfig:"COMMON_CONTROLLER_XDS_PORT" default:"18002"`
 	CommonControllerRestPort         string `envconfig:"COMMON_CONTROLLER_REST_PORT" default:"18003"`
-	XdsMaxMsgSize                    int    `envconfig:"XDS_MAX_MSG_SIZE" default:"4194304"`
+	XdsMaxMsgSize                    int    `envconfig:"XDS_MAX_MSG_SIZE" default:"41943040"` // 40MB
 	EnforcerLabel                    string `envconfig:"ENFORCER_LABEL" default:"enforcer"`
 	EnforcerRegionID                 string `envconfig:"ENFORCER_REGION" default:"UNKNOWN"`
 	XdsMaxRetries                    int    `envconfig:"XDS_MAX_RETRIES" default:"3"`

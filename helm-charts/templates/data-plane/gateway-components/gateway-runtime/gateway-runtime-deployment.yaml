@@ -101,7 +101,7 @@ spec:
             - name: ENFORCER_REGION
               value: UNKNOWN
             - name: XDS_MAX_MSG_SIZE
-              value: "4194304"
+              value: "41943040"
             - name: XDS_MAX_RETRIES 
               value: "3"
             - name: enforcer_admin_pwd
