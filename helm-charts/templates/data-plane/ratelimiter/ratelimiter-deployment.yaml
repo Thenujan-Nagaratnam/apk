@@ -192,6 +192,22 @@ spec:
             - name: secret-provider-class
               mountPath: /home/wso2/security/truststore/router.pem
               subPath: router-ca.crt
+            {{- else if eq .Values.wso2.apk.secretProviderClass.provider "aws" }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/ratelimiter.key
+              subPath: apk-server.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/ratelimiter.crt
+              subPath: apk-server.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/ratelimiter-ca.crt
+              subPath: apk-server.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/adapter.pem
+              subPath: apk-server.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/router.pem
+              subPath: apk-server.crt
             {{- else }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/ratelimiter.key
@@ -305,7 +321,7 @@ spec:
             nodePublishSecretRef:
               name: {{ .Values.wso2.apk.secretProviderClass.nodePublishSecretRef }}
             {{- end }}
-        {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+        {{- if or (eq .Values.wso2.apk.secretProviderClass.provider "azure") (eq .Values.wso2.apk.secretProviderClass.provider "aws") }}
         - name: apk-server-tls-secret-volume
           secret:
             secretName: {{ template "apk-helm.resource.prefix" . }}-apk-server-tls

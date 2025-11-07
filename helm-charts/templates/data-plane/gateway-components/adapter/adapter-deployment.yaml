@@ -88,6 +88,22 @@ spec:
             - name: enforcer-jwks-tls-secret-volume
               mountPath: /home/wso2/security/truststore/enforcer.crt
               subPath: tls.crt
+            {{- else if eq .Values.wso2.apk.secretProviderClass.provider "aws" }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/adapter.key
+              subPath: apk-server.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/adapter.crt
+              subPath: apk-server.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/adapter-ca.crt
+              subPath: apim-internal-intermediate-ca.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/router.crt
+              subPath: apk-server.crt
+            - name: enforcer-jwks-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/enforcer.crt
+              subPath: enforcer-jwks.crt # TODO: (thushani) should be enforcer-jwks-ca.crt check this
             {{- else }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/adapter.key
@@ -205,7 +221,7 @@ spec:
             nodePublishSecretRef:
               name: {{ .Values.wso2.apk.secretProviderClass.nodePublishSecretRef }}
             {{- end }}
-        {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+        {{- if or (eq .Values.wso2.apk.secretProviderClass.provider "azure") (eq .Values.wso2.apk.secretProviderClass.provider "aws") }}
         - name: apk-server-tls-secret-volume
           secret:
             secretName: {{ template "apk-helm.resource.prefix" . }}-apk-server-tls
