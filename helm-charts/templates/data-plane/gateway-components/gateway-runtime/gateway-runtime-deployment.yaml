@@ -219,6 +219,34 @@ spec:
               mountPath: /home/wso2/security/truststore/ratelimiter.crt
               subPath: tls.crt
             {{- end }}
+            {{- else if eq .Values.wso2.apk.secretProviderClass.provider "aws" }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/enforcer.key
+              subPath: apk-server.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/enforcer.crt
+              subPath: apk-server.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/apk.crt
+              subPath: apim-internal-intermediate-ca.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/enforcer.crt
+              subPath: apk-server.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/adapter.crt
+              subPath: apim-internal-intermediate-ca.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/router.crt
+              subPath: apim-internal-intermediate-ca.crt
+            - name: enforcer-jwks-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/mg.key
+              subPath: enforcer-jwks.key
+            - name: enforcer-jwks-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/mg.pem
+              subPath: enforcer-jwks.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/mg.pem
+              subPath: apim-internal-intermediate-ca.crt
             {{- else }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/enforcer.key
@@ -437,6 +465,24 @@ spec:
             - name: apk-server-tls-secret-volume
               mountPath: /home/wso2/security/truststore/ratelimiter.crt
               subPath: tls.crt
+            {{- end }}
+            {{- else if eq .Values.wso2.apk.secretProviderClass.provider "aws" }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/router.key
+              subPath: apk-server.key
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/keystore/router.crt
+              subPath: apk-server.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/adapter.crt
+              subPath: apk-server.crt
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/enforcer.crt
+              subPath: apk-server.crt
+            {{- if and .Values.wso2.apk.dp.enabled .Values.wso2.apk.dp.ratelimiter.enabled }}
+            - name: apk-server-tls-secret-volume
+              mountPath: /home/wso2/security/truststore/ratelimiter.crt
+              subPath: apk-server.crt
             {{- end }}
             {{- else }}
             - name: secret-provider-class
