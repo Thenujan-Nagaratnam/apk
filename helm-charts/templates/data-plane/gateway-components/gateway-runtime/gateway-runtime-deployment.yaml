@@ -595,7 +595,7 @@ spec:
             nodePublishSecretRef:
               name: {{ .Values.wso2.apk.secretProviderClass.nodePublishSecretRef }}
             {{- end }}
-        {{- if eq .Values.wso2.apk.secretProviderClass.provider "azure" }}
+        {{- if or (eq .Values.wso2.apk.secretProviderClass.provider "azure") (eq .Values.wso2.apk.secretProviderClass.provider "aws") }}
         - name: apk-server-tls-secret-volume
           secret:
             secretName: {{ template "apk-helm.resource.prefix" . }}-apk-server-tls
