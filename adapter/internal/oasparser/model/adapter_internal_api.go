@@ -726,9 +726,9 @@ func (adapterInternalAPI *AdapterInternalAPI) SetInfoHTTPRouteCR(ctx context.Con
 
 				switch filter.URLRewrite.Path.Type {
 				case gwapiv1.FullPathHTTPPathModifier:
-					policyParameters[constants.RewritePathResourcePath] = backendBasePath + *filter.URLRewrite.Path.ReplaceFullPath
+					policyParameters[constants.RewritePathResourcePath] = joinPaths(backendBasePath, *filter.URLRewrite.Path.ReplaceFullPath)
 				case gwapiv1.PrefixMatchHTTPPathModifier:
-					policyParameters[constants.RewritePathResourcePath] = backendBasePath + *filter.URLRewrite.Path.ReplacePrefixMatch
+					policyParameters[constants.RewritePathResourcePath] = joinPaths(backendBasePath, *filter.URLRewrite.Path.ReplacePrefixMatch)
 				}
 
 				policies.Request = append(policies.Request, Policy{
@@ -2149,6 +2149,14 @@ func CreateDummyAdapterInternalAPIForTests(title, version, basePath string, reso
 		xWso2Basepath: basePath,
 		resources:     resources,
 	}
+}
+
+// joinPaths safely concatenates basePath and path, avoiding double slashes when basePath is "/"
+func joinPaths(basePath, path string) string {
+	if basePath == "/" {
+		return path
+	}
+	return basePath + path
 }
 
 func prepareAIRatelimitIdentifier(org string, namespacedName types.NamespacedName, spec *dpv1alpha3.AIRateLimitPolicySpec) string {
