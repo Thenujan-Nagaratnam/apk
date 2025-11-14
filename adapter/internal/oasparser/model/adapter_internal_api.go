@@ -879,9 +879,9 @@ func (adapterInternalAPI *AdapterInternalAPI) SetInfoHTTPRouteCR(ctx context.Con
 
 				switch filter.RequestRedirect.Path.Type {
 				case gwapiv1.FullPathHTTPPathModifier:
-					policyParameters[constants.RedirectPath] = backendBasePath + *filter.RequestRedirect.Path.ReplaceFullPath
+					policyParameters[constants.RedirectPath] = joinPaths(backendBasePath, *filter.RequestRedirect.Path.ReplaceFullPath)
 				case gwapiv1.PrefixMatchHTTPPathModifier:
-					policyParameters[constants.RedirectPath] = backendBasePath + *filter.RequestRedirect.Path.ReplacePrefixMatch
+					policyParameters[constants.RedirectPath] = joinPaths(backendBasePath, *filter.RequestRedirect.Path.ReplacePrefixMatch)
 				}
 				requestRedirectEndpoint.Basepath = policyParameters[constants.RedirectPath].(string)
 
@@ -1019,14 +1019,14 @@ func (adapterInternalAPI *AdapterInternalAPI) SetInfoHTTPRouteCR(ctx context.Con
 					policyParameters[constants.RewritePathType] = gwapiv1.FullPathHTTPPathModifier
 				}
 				policyParameters[constants.IncludeQueryParams] = true
-				policyParameters[constants.RewritePathResourcePath] = strings.TrimSuffix(backendBasePath, "/") + *match.Path.Value
+				policyParameters[constants.RewritePathResourcePath] = joinPaths(backendBasePath, *match.Path.Value)
 				policies.Request = append(policies.Request, Policy{
 					PolicyName: string(gwapiv1.HTTPRouteFilterURLRewrite),
 					Action:     constants.ActionRewritePath,
 					Parameters: policyParameters,
 				})
 			}
-			resourcePath := adapterInternalAPI.xWso2Basepath + *match.Path.Value
+			resourcePath := joinPaths(adapterInternalAPI.xWso2Basepath, *match.Path.Value)
 			matchID := getMatchID(httpRoute.Namespace, httpRoute.Name, ruleID, matchID)
 			operations := getAllowedOperations(matchID, match.Method, policies, apiAuth,
 				parseRateLimitPolicyToInternal(resourceRatelimitPolicy), scopes, mirrorEndpointClusters)
@@ -2151,11 +2151,38 @@ func CreateDummyAdapterInternalAPIForTests(title, version, basePath string, reso
 	}
 }
 
-// joinPaths safely concatenates basePath and path, avoiding double slashes when basePath is "/"
+// joinPaths safely concatenates basePath and path, handling various edge cases
 func joinPaths(basePath, path string) string {
+	// Trim spaces from both inputs
+	basePath = strings.TrimSpace(basePath)
+	path = strings.TrimSpace(path)
+
+	// Handle empty basePath
+	if basePath == "" {
+		return path
+	}
+
+	// Handle empty path
+	if path == "" {
+		return basePath
+	}
+
+	// If basePath is just "/", return the path as is to avoid "//" prefix
 	if basePath == "/" {
 		return path
 	}
+
+	// Handle case where path doesn't start with "/" but basePath doesn't end with "/"
+	// This ensures proper path formation
+	if !strings.HasSuffix(basePath, "/") && !strings.HasPrefix(path, "/") {
+		return basePath + "/" + path
+	}
+
+	// Handle double slash case where basePath ends with "/" and path starts with "/"
+	if strings.HasSuffix(basePath, "/") && strings.HasPrefix(path, "/") {
+		return basePath + strings.TrimPrefix(path, "/")
+	}
+
 	return basePath + path
 }
 
