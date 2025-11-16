@@ -88,7 +88,7 @@ spec:
             - name: enforcer-jwks-tls-secret-volume
               mountPath: /home/wso2/security/truststore/enforcer.crt
               subPath: tls.crt
-            {{- else if eq .Values.wso2.apk.secretProviderClass.provider "aws" }}
+            {{- else if or (eq .Values.wso2.apk.secretProviderClass.provider "aws") (eq .Values.wso2.apk.secretProviderClass.provider "gcp") }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/adapter.key
               subPath: apk-server.key
