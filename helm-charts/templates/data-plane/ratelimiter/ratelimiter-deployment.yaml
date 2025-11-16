@@ -192,7 +192,7 @@ spec:
             - name: secret-provider-class
               mountPath: /home/wso2/security/truststore/router.pem
               subPath: router-ca.crt
-            {{- else if eq .Values.wso2.apk.secretProviderClass.provider "aws" }}
+            {{- else if or (eq .Values.wso2.apk.secretProviderClass.provider "aws") (eq .Values.wso2.apk.secretProviderClass.provider "gcp") }}
             - name: secret-provider-class
               mountPath: /home/wso2/security/keystore/ratelimiter.key
               subPath: apk-server.key
